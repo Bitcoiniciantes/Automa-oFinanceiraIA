@@ -95,36 +95,72 @@ export function TransactionItem({ transaction }) {
 }
 
 function ExpenseForm({ userId, onSaved }) {
-  const [form, setForm] = useState({ merchant: '', value: '', category: 'Alimentação', date: new Date().toISOString().slice(0, 10) })
+  const emptyForm = () => ({ merchant: '', value: '', category: 'Alimentação', date: new Date().toISOString().slice(0, 10) })
+  const [form, setForm] = useState(emptyForm)
   const [invoice, setInvoice] = useState(null)
+  const [pendingInvoice, setPendingInvoice] = useState(null)
+  const [analysisNotice, setAnalysisNotice] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  function selectInvoice(file) {
+    setInvoice(file)
+    setPendingInvoice(null)
+    setAnalysisNotice('')
+    setError('')
+  }
+
+  async function readInvoice() {
+    const token = await getIdToken(auth.currentUser)
+    const transactionRef = doc(collection(db, userCollection, userId, 'transacoes'))
+    const formData = new FormData()
+    formData.append('file', invoice)
+    formData.append('fileName', invoice.name)
+    formData.append('transactionId', transactionRef.id)
+    const uploadResponse = await fetch(`${FINAI_AI_ENDPOINT.replace('/v1/finai-assistant', '/v1/finai-invoice')}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
+    const uploadResult = await uploadResponse.json()
+    if (!uploadResponse.ok) throw new Error(uploadResult.error || 'Falha no upload da nota fiscal')
+    setPendingInvoice({ id: transactionRef.id, path: uploadResult.path, name: uploadResult.name, provider: uploadResult.provider })
+    const extraction = uploadResult.extraction
+    if (extraction) {
+      setForm(current => ({ ...current, merchant: extraction.merchant || current.merchant, value: extraction.amount ? extraction.amount.toFixed(2).replace('.', ',') : current.value, category: extraction.category || current.category, date: extraction.date || current.date }))
+      setAnalysisNotice('Campos sugeridos pelo Gemini. Revise os dados e clique em Salvar gasto.')
+    } else {
+      setAnalysisNotice('A nota foi armazenada, mas não foi possível extrair todos os campos. Preencha-os manualmente e clique em Salvar gasto.')
+    }
+  }
+
   async function submit(event) {
-    event.preventDefault(); setError('')
-    const amount = Number(form.value.replace(',', '.'))
-    if (!form.merchant.trim() || !Number.isFinite(amount) || amount <= 0) { setError('Informe o estabelecimento e um valor válido.'); return }
+    event.preventDefault()
+    setError('')
     if (invoice && invoice.size > 5 * 1024 * 1024) { setError('A nota fiscal deve ter no máximo 5 MB.'); return }
     setSaving(true)
     try {
-      const transactionRef = doc(collection(db, userCollection, userId, 'transacoes'))
-      let invoicePath = ''
-      if (invoice) {
-        const token = await getIdToken(auth.currentUser)
-        const formData = new FormData()
-        formData.append('file', invoice)
-        formData.append('fileName', invoice.name)
-        formData.append('transactionId', transactionRef.id)
-        const uploadResponse = await fetch(`${FINAI_AI_ENDPOINT.replace('/v1/finai-assistant', '/v1/finai-invoice')}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
-        const uploadResult = await uploadResponse.json()
-        if (!uploadResponse.ok) throw new Error(uploadResult.error || 'Falha no upload da nota fiscal')
-        invoicePath = uploadResult.path
+      if (invoice && !pendingInvoice) {
+        await readInvoice()
+        return
       }
-      const transaction = { merchant: form.merchant.trim(), category: form.category, date: new Date(`${form.date}T12:00:00`).toLocaleDateString('pt-BR'), initials: form.merchant.trim().slice(0, 2).toUpperCase(), type: form.category === 'Alimentação' ? 'food' : form.category === 'Moradia' ? 'home' : form.category === 'Transporte' ? 'transport' : 'food', value: `− R$ ${amount.toFixed(2).replace('.', ',')}`, amount, ...(invoicePath ? { invoicePath, invoiceName: invoice.name } : {}) }
-      await setDoc(transactionRef, transaction); onSaved({ id: transactionRef.id, ...transaction })
-      setForm({ merchant: '', value: '', category: 'Alimentação', date: new Date().toISOString().slice(0, 10) }); setInvoice(null); event.target.reset()
-    } catch (saveError) { console.error('Não foi possível salvar o gasto.', saveError); setError('Não foi possível salvar. Verifique as regras do Firestore e do Supabase.') } finally { setSaving(false) }
+      const amount = Number(form.value.replace(',', '.'))
+      if (!form.merchant.trim() || !Number.isFinite(amount) || amount <= 0) { setError('Informe o estabelecimento e um valor válido.'); return }
+      const transactionRef = pendingInvoice ? doc(db, userCollection, userId, 'transacoes', pendingInvoice.id) : doc(collection(db, userCollection, userId, 'transacoes'))
+      const transaction = { merchant: form.merchant.trim(), category: form.category, date: new Date(`${form.date}T12:00:00`).toLocaleDateString('pt-BR'), initials: form.merchant.trim().slice(0, 2).toUpperCase(), type: form.category === 'Alimentação' ? 'food' : form.category === 'Moradia' ? 'home' : form.category === 'Transporte' ? 'transport' : 'food', value: `− R$ ${amount.toFixed(2).replace('.', ',')}`, amount, ...(pendingInvoice ? { invoicePath: pendingInvoice.path, invoiceName: pendingInvoice.name, invoiceProvider: pendingInvoice.provider || 'gemini' } : {}) }
+      await setDoc(transactionRef, transaction)
+      onSaved({ id: transactionRef.id, ...transaction })
+      setForm(emptyForm())
+      setInvoice(null)
+      setPendingInvoice(null)
+      setAnalysisNotice('')
+      event.target.reset()
+    } catch (saveError) {
+      console.error('Não foi possível salvar o gasto.', saveError)
+      setError(saveError.message || 'Não foi possível salvar. Verifique as regras do Firestore e do Supabase.')
+    } finally {
+      setSaving(false)
+    }
   }
-  return <form className={styles.expenseForm} onSubmit={submit}><div className={styles.formGrid}><label>Estabelecimento<input value={form.merchant} onChange={event => setForm(current => ({ ...current, merchant: event.target.value }))} placeholder="Ex.: Mercado" required /></label><label>Valor<input value={form.value} onChange={event => setForm(current => ({ ...current, value: event.target.value }))} inputMode="decimal" placeholder="0,00" required /></label><label>Data<input type="date" value={form.date} onChange={event => setForm(current => ({ ...current, date: event.target.value }))} required /></label><label>Categoria<select value={form.category} onChange={event => setForm(current => ({ ...current, category: event.target.value }))}><option>Alimentação</option><option>Moradia</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Outros</option></select></label></div><div className={styles.formActions}><label className={styles.invoiceInput}>Nota fiscal (opcional)<input type="file" accept="image/jpeg,image/png,application/pdf" onChange={event => setInvoice(event.target.files?.[0] || null)} /></label><button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Adicionar gasto'}</button></div>{invoice && <small className={styles.fileHint}>Arquivo: {invoice.name}</small>}{error && <div className={styles.authError} role="alert">{error}</div>}</form>
+
+  const buttonLabel = saving ? (invoice && !pendingInvoice ? 'Lendo nota…' : 'Salvando…') : invoice && !pendingInvoice ? 'Ler nota fiscal' : pendingInvoice ? 'Salvar gasto' : 'Adicionar gasto'
+  return <form className={styles.expenseForm} onSubmit={submit}><div className={styles.formGrid}><label>Estabelecimento<input value={form.merchant} onChange={event => setForm(current => ({ ...current, merchant: event.target.value }))} placeholder="Ex.: Mercado" /></label><label>Valor<input value={form.value} onChange={event => setForm(current => ({ ...current, value: event.target.value }))} inputMode="decimal" placeholder="0,00" /></label><label>Data<input type="date" value={form.date} onChange={event => setForm(current => ({ ...current, date: event.target.value }))} required /></label><label>Categoria<select value={form.category} onChange={event => setForm(current => ({ ...current, category: event.target.value }))}><option>Alimentação</option><option>Moradia</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Outros</option></select></label></div><div className={styles.formActions}><label className={styles.invoiceInput}>Nota fiscal (opcional)<input type="file" accept="image/jpeg,image/png,application/pdf" onChange={event => selectInvoice(event.target.files?.[0] || null)} /></label><button type="submit" disabled={saving}>{buttonLabel}</button></div>{invoice && <small className={styles.fileHint}>Arquivo: {invoice.name}</small>}{analysisNotice && <small className={styles.fileHint} aria-live="polite">{analysisNotice}</small>}{error && <div className={styles.authError} role="alert">{error}</div>}</form>
 }
 export function TransactionList({ transactions }) {
   return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Transações recentes</h2><button className={styles.select}>Ver todas →</button></div>{transactions.map(transaction => <TransactionItem key={`${transaction.merchant}-${transaction.date}`} transaction={transaction} />)}</article>
