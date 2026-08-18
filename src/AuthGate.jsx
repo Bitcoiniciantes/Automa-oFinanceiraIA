@@ -24,7 +24,17 @@ export default function AuthGate() {
       if (registering) await createUserWithEmailAndPassword(auth, email, password)
       else await signInWithEmailAndPassword(auth, email, password)
     } catch (authError) {
-      setError(authError.code === 'auth/invalid-credential' ? 'E-mail ou senha inválidos.' : 'Não foi possível concluir a autenticação.')
+      console.error('Falha na autenticação:', authError.code, authError.message)
+      const messages = {
+        'auth/invalid-credential': 'E-mail ou senha inválidos.',
+        'auth/user-not-found': 'Este e-mail não está cadastrado no Firebase.',
+        'auth/wrong-password': 'A senha está incorreta.',
+        'auth/operation-not-allowed': 'O login por e-mail e senha está desativado no Firebase.',
+        'auth/invalid-api-key': 'A configuração do Firebase está inválida.',
+        'auth/network-request-failed': 'Falha de conexão. Verifique a internet.',
+        'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
+      }
+      setError(messages[authError.code] || `Erro do Firebase: ${authError.code || 'desconhecido'}`)
     } finally {
       setLoading(false)
     }
