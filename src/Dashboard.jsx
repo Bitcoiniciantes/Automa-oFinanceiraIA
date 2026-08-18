@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
 import styles from './Dashboard.module.css'
 
@@ -110,10 +110,23 @@ export function InsightCard({ insight }) {
   return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Insight do FinAI</h2><span className={styles.sparkle}>✦</span></div><p className={styles.insightText}>{insight}</p><button className={styles.insightLink}>Conversar com o Assistente →</button></article>
 }
 
-function AssistantPanel({ data }) {
+function AssistantPanel({ data, userId }) {
   const [messages, setMessages] = useState([{ role: 'model', text: 'Olá! Posso analisar seus gastos, receitas e assinaturas.' }])
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
+  const [historyLoaded, setHistoryLoaded] = useState(false)
+
+  useEffect(() => {
+    getDoc(doc(db, userCollection, userId, 'assistente', 'conversa')).then(snapshot => {
+      const saved = snapshot.data()?.messages
+      if (Array.isArray(saved)) setMessages(saved.slice(-30))
+    }).catch(error => console.warn('Histórico do assistente indisponível.', error)).finally(() => setHistoryLoaded(true))
+  }, [userId])
+
+  useEffect(() => {
+    if (!historyLoaded) return
+    setDoc(doc(db, userCollection, userId, 'assistente', 'conversa'), { messages: messages.slice(-30), updatedAt: new Date().toISOString() }, { merge: true }).catch(error => console.warn('Não foi possível salvar o histórico do assistente.', error))
+  }, [messages, historyLoaded, userId])
   async function sendMessage(event) {
     event.preventDefault()
     const question = prompt.trim()
@@ -154,7 +167,7 @@ export default function Dashboard({ userId }) {
     return () => { cancelled = true }
   }, [userId])
 
-  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{data.stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel/><div className={styles.lower}><TransactionList transactions={data.transactions}/><CategoryPanel/></div></section><aside className={styles.side}><SubscriptionRadar subscriptions={data.subscriptions}/><InsightCard insight={data.insight}/></aside></> : activeItem === 'Meus gastos' ? <section><div className={styles.pageIntro}><h2>Meus gastos</h2><p>Consulte as transações carregadas da sua conta.</p></div><TransactionList transactions={data.transactions}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe suas próximas cobranças.</p></div><SubscriptionRadar subscriptions={data.subscriptions}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data}/></section>
+  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{data.stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel/><div className={styles.lower}><TransactionList transactions={data.transactions}/><CategoryPanel/></div></section><aside className={styles.side}><SubscriptionRadar subscriptions={data.subscriptions}/><InsightCard insight={data.insight}/></aside></> : activeItem === 'Meus gastos' ? <section><div className={styles.pageIntro}><h2>Meus gastos</h2><p>Consulte as transações carregadas da sua conta.</p></div><TransactionList transactions={data.transactions}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe suas próximas cobranças.</p></div><SubscriptionRadar subscriptions={data.subscriptions}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data} userId={userId}/></section>
 
   return <div className={styles.app}><Sidebar activeItem={activeItem} onNavigate={setActiveItem}/><main><Topbar user={data.user}/><div className={styles.content}>{pageContent}</div></main></div>
 }
