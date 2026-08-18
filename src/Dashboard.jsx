@@ -324,15 +324,19 @@ export function ChartPanel({ transactions }) {
   const series = useMemo(() => buildChartSeries(transactions), [transactions])
   const hasData = series.some(point => point.despesas > 0 || point.receitas > 0 || point.saldo !== 0)
   const width = 760
-  const height = 220
-  const yTop = 20
-  const yBottom = 185
-  const max = Math.max(1, ...series.map(point => Math.max(point.saldo, point.despesas)))
-  const x = index => (index / (series.length - 1)) * width
-  const y = value => yBottom - (Math.max(0, value) / max) * (yBottom - yTop)
+  const height = 240
+  const yTop = 18
+  const yBottom = 198
+  const values = series.flatMap(point => [point.saldo, point.despesas, point.receitas])
+  const max = Math.max(1, ...values)
+  const min = Math.min(0, ...values)
+  const range = (max - min) || 1
+  const x = index => series.length === 1 ? width / 2 : (index / (series.length - 1)) * width
+  const y = value => yBottom - ((value - min) / range) * (yBottom - yTop)
+  const yZero = y(0)
   const toPath = getValue => series.map((point, index) => `${index === 0 ? 'M' : 'L'}${x(index).toFixed(1)} ${y(getValue(point)).toFixed(1)}`).join(' ')
   const last = series.length - 1
-  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Fluxo financeiro</h2><select className={styles.select} defaultValue="6"><option value="6">Últimos 6 meses</option></select></div><div className={styles.chart}>{hasData ? <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Fluxo financeiro dos últimos 6 meses"><g stroke="#eef0f5" strokeWidth="1"><path d={`M0 ${yTop}H${width}M0 75H${width}M0 130H${width}M0 ${yBottom}H${width}`}/></g><path d={toPath(point => point.saldo)} fill="none" stroke="#635bff" strokeWidth="3"/><path d={toPath(point => point.despesas)} fill="none" stroke="#c8c9ff" strokeWidth="3" strokeDasharray="5 5"/><circle cx={x(last).toFixed(1)} cy={y(series[last].saldo).toFixed(1)} r="4" fill="#635bff"/><g fill="#8c93a8" fontSize="10">{series.map((point, index) => <text key={point.label} x={index === 0 ? 0 : index === last ? width - 8 : x(index).toFixed(1)} y="214" textAnchor={index === 0 ? 'start' : index === last ? 'end' : 'middle'}>{point.label}</text>)}</g></svg> : <div className={styles.chartEmpty}>Sem movimentações nos últimos 6 meses.</div>}</div><div className={styles.legend}><span>Saldo acumulado</span><span>Despesas</span></div></article>
+  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Fluxo financeiro</h2><select className={styles.select} defaultValue="6"><option value="6">Últimos 6 meses</option></select></div><div className={styles.chart}>{hasData ? <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Fluxo financeiro dos últimos 6 meses"><g stroke="#eef0f5" strokeWidth="1"><path d={`M0 ${yTop}H${width}M0 ${yBottom}H${width}`}/></g><path d={`M0 ${yZero}H${width}`} stroke="#d9dbea" strokeWidth="1" strokeDasharray="4 4"/><path d={toPath(point => point.despesas)} fill="none" stroke="#f2a94a" strokeWidth="2.5"/><path d={toPath(point => point.saldo)} fill="none" stroke="#635bff" strokeWidth="3"/><circle cx={x(last).toFixed(1)} cy={y(series[last].saldo).toFixed(1)} r="4" fill="#635bff"/><g fill="#8c93a8" fontSize="11">{series.map((point, index) => <text key={`${point.key}-${index}`} x={index === 0 ? 0 : index === last ? width - 4 : x(index).toFixed(1)} y={height - 10} textAnchor={index === 0 ? 'start' : index === last ? 'end' : 'middle'}>{point.label}{point.key === monthKey(new Date()) ? ' · atual' : ''}</text>)}</g></svg> : <div className={styles.chartEmpty}>Sem movimentações nos últimos 6 meses.</div>}</div><div className={styles.legend}><span className={styles.legendBlue}>Saldo acumulado</span><span className={styles.legendOrange}>Despesas</span></div></article>
 }
 
 function buildMonthlySummary(transactions) {
@@ -356,11 +360,11 @@ function buildMonthlySummary(transactions) {
 
 export function MonthlyComparePanel({ transactions }) {
   const months = useMemo(() => buildMonthlySummary(transactions), [transactions])
-  const [openKey, setOpenKey] = useState(null)
-  const maxGasto = Math.max(1, ...months.map(month => month.gastos))
-  const hasData = months.some(month => month.lancamentos > 0)
+  const withData = months.filter(month => month.lancamentos > 0).reverse()
+  const maxGasto = Math.max(1, ...withData.map(month => month.gastos))
   const current = months[months.length - 1]
-  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Comparativo mensal</h2><span className={styles.panelNote}>{hasData ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos` : 'Sem lançamentos nos últimos 6 meses'}</span></div>{hasData && <div className={styles.monthRows}>{months.map(month => { const isCurrent = month.key === monthKey(new Date()); const open = month.key === openKey; return <div key={month.key} className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''} ${open ? styles.monthOpen : ''}`} onClick={() => setOpenKey(open ? null : month.key)}><span className={styles.monthLabel}>{open ? '▾' : '▸'} {isCurrent ? 'Este mês' : month.label}</span><span className={styles.monthTrack}><i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} /></span><span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span><span className={styles.monthCount}>{month.lancamentos}</span>{open && <div className={styles.monthDetail}>{month.itens.map(item => <div className={styles.monthItem} key={item.id}><span>{item.merchant}</span><small>{item.date.toLocaleDateString('pt-BR')}</small><b>{item.value}</b></div>)}</div>}</div> })}</div>}</article>
+  const hasData = withData.length > 0
+  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Comparativo mensal</h2><span className={styles.panelNote}>{hasData ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos` : 'Sem lançamentos nos últimos 6 meses'}</span></div>{hasData && <div className={styles.monthRows}>{withData.map(month => { const isCurrent = month.key === monthKey(new Date()); return <div key={month.key} className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''}`}><span className={styles.monthLabel}>{isCurrent ? 'Este mês' : month.label}</span><span className={styles.monthTrack}><i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} /></span><span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span><span className={styles.monthCount}>{month.lancamentos}</span><div className={styles.monthDetail}>{month.itens.map(item => <div className={styles.monthItem} key={item.id}><span>{item.merchant}</span><small>{item.date.toLocaleDateString('pt-BR')}</small><b>{item.value}</b></div>)}</div></div> })}</div>}</article>
 }
 
 export function TransactionItem({ transaction, onEdit, onDelete }) {
