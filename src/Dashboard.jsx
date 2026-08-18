@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
-import { signOut } from 'firebase/auth'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { auth, db, storage } from './firebase'
+import { getIdToken, signOut } from 'firebase/auth'
+import { auth, db } from './firebase'
 import styles from './Dashboard.module.css'
 
 const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
@@ -104,16 +103,26 @@ function ExpenseForm({ userId, onSaved }) {
     event.preventDefault(); setError('')
     const amount = Number(form.value.replace(',', '.'))
     if (!form.merchant.trim() || !Number.isFinite(amount) || amount <= 0) { setError('Informe o estabelecimento e um valor válido.'); return }
-    if (invoice) { setError('Anexos de nota fiscal estão temporariamente desativados sem Firebase Storage. Remova o arquivo para salvar somente o gasto.'); return }
+    if (invoice && invoice.size > 5 * 1024 * 1024) { setError('A nota fiscal deve ter no máximo 5 MB.'); return }
     setSaving(true)
     try {
       const transactionRef = doc(collection(db, userCollection, userId, 'transacoes'))
-      let invoiceUrl = ''
-      if (invoice) { const fileRef = ref(storage, `usuarios/${userId}/notas-fiscais/${transactionRef.id}-${invoice.name}`); await uploadBytes(fileRef, invoice); invoiceUrl = await getDownloadURL(fileRef) }
-      const transaction = { merchant: form.merchant.trim(), category: form.category, date: new Date(`${form.date}T12:00:00`).toLocaleDateString('pt-BR'), initials: form.merchant.trim().slice(0, 2).toUpperCase(), type: form.category === 'Alimentação' ? 'food' : form.category === 'Moradia' ? 'home' : form.category === 'Transporte' ? 'transport' : 'food', value: `− R$ ${amount.toFixed(2).replace('.', ',')}`, amount, ...(invoiceUrl ? { invoiceUrl, invoiceName: invoice.name } : {}) }
+      let invoicePath = ''
+      if (invoice) {
+        const token = await getIdToken(auth.currentUser)
+        const formData = new FormData()
+        formData.append('file', invoice)
+        formData.append('fileName', invoice.name)
+        formData.append('transactionId', transactionRef.id)
+        const uploadResponse = await fetch(`${FINAI_AI_ENDPOINT.replace('/v1/finai-assistant', '/v1/finai-invoice')}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData })
+        const uploadResult = await uploadResponse.json()
+        if (!uploadResponse.ok) throw new Error(uploadResult.error || 'Falha no upload da nota fiscal')
+        invoicePath = uploadResult.path
+      }
+      const transaction = { merchant: form.merchant.trim(), category: form.category, date: new Date(`${form.date}T12:00:00`).toLocaleDateString('pt-BR'), initials: form.merchant.trim().slice(0, 2).toUpperCase(), type: form.category === 'Alimentação' ? 'food' : form.category === 'Moradia' ? 'home' : form.category === 'Transporte' ? 'transport' : 'food', value: `− R$ ${amount.toFixed(2).replace('.', ',')}`, amount, ...(invoicePath ? { invoicePath, invoiceName: invoice.name } : {}) }
       await setDoc(transactionRef, transaction); onSaved({ id: transactionRef.id, ...transaction })
       setForm({ merchant: '', value: '', category: 'Alimentação', date: new Date().toISOString().slice(0, 10) }); setInvoice(null); event.target.reset()
-    } catch (saveError) { console.error('Não foi possível salvar o gasto.', saveError); setError('Não foi possível salvar. Verifique as regras do Firestore e do Storage.') } finally { setSaving(false) }
+    } catch (saveError) { console.error('Não foi possível salvar o gasto.', saveError); setError('Não foi possível salvar. Verifique as regras do Firestore e do Supabase.') } finally { setSaving(false) }
   }
   return <form className={styles.expenseForm} onSubmit={submit}><div className={styles.formGrid}><label>Estabelecimento<input value={form.merchant} onChange={event => setForm(current => ({ ...current, merchant: event.target.value }))} placeholder="Ex.: Mercado" required /></label><label>Valor<input value={form.value} onChange={event => setForm(current => ({ ...current, value: event.target.value }))} inputMode="decimal" placeholder="0,00" required /></label><label>Data<input type="date" value={form.date} onChange={event => setForm(current => ({ ...current, date: event.target.value }))} required /></label><label>Categoria<select value={form.category} onChange={event => setForm(current => ({ ...current, category: event.target.value }))}><option>Alimentação</option><option>Moradia</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Outros</option></select></label></div><div className={styles.formActions}><label className={styles.invoiceInput}>Nota fiscal (opcional)<input type="file" accept="image/jpeg,image/png,application/pdf" onChange={event => setInvoice(event.target.files?.[0] || null)} /></label><button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Adicionar gasto'}</button></div>{invoice && <small className={styles.fileHint}>Arquivo: {invoice.name}</small>}{error && <div className={styles.authError} role="alert">{error}</div>}</form>
 }
