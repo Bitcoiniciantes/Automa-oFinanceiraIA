@@ -11,6 +11,23 @@ const MAX_INVOICE_SIZE = 5 * 1024 * 1024
 const MONTH_LABELS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 const CATEGORIES = ['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Educação', 'Outros']
 const RECEITA_CATEGORIES = ['Salário', 'Aluguel', 'Pró-Labore', 'Renda passiva', 'Juros aplicações', 'Créditos diversos', 'Outros']
+
+const CATEGORY_KEYWORDS = [
+  ['Alimentação', ['mercado', 'supermercado', 'padaria', 'pao', 'acougue', 'hortifruti', 'ifood', 'restaurante', 'lanchonete', 'pizza', 'sushi', 'hamburguer', 'burger', 'delivery', 'acai', 'sorvete', 'cafe', 'suco', 'feira', 'quitanda']],
+  ['Moradia', ['aluguel', 'condominio', 'imobiliaria', 'iptu', 'energia', 'eletrica', 'agua', 'internet', 'net', 'vivo', 'claro', 'oi', 'lar', 'casa', 'mobilia']],
+  ['Transporte', ['uber', 'taxi', '99', 'posto', 'gasolina', 'combustivel', 'estacionamento', 'pedagio', 'passagem', 'onibus', 'metro', 'trem', 'aeroporto', 'azul', 'latam', 'gol']],
+  ['Saúde', ['farmacia', 'drogaria', 'medico', 'consulta', 'dentista', 'clinica', 'hospital', 'laboratorio', 'academia', 'psicologo', 'plano de saude', 'unimed', 'amil', 'sulamerica']],
+  ['Educação', ['escola', 'faculdade', 'curso', 'universidade', 'idiomas', 'ingles', 'colegio', 'livraria', 'mente', 'jovem', 'kumon']],
+]
+
+function inferCategory(merchant) {
+  const text = String(merchant || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  if (!text.trim()) return null
+  for (const [category, keywords] of CATEGORY_KEYWORDS) {
+    if (keywords.some(keyword => text.includes(keyword))) return category
+  }
+  return null
+}
 const CATEGORY_TONES = { Moradia: 'brand', Alimentação: 'orange', Transporte: 'teal' }
 const CATEGORY_COLORS = { brand: '#635bff', orange: '#f2a94a', teal: '#57b9ad', gray: '#e7e8f2' }
 
@@ -410,6 +427,10 @@ function ExpenseForm({ userId, transactions, onSaved }) {
     setForm(current => {
       const next = { ...current, [key]: value }
       if (key === 'type') next.category = value === 'receita' ? RECEITA_CATEGORIES[0] : CATEGORIES[0]
+      if (key === 'merchant' && next.type === 'gasto') {
+        const inferred = inferCategory(value)
+        if (inferred) next.category = inferred
+      }
       return next
     })
     setDuplicate(null)
@@ -447,7 +468,7 @@ function ExpenseForm({ userId, transactions, onSaved }) {
     setPendingInvoice({ id: transactionRef.id, path: uploadResult.path || null, name: uploadResult.name, provider: uploadResult.provider })
     const extraction = uploadResult.extraction
     if (extraction) {
-      setForm(current => ({ ...current, merchant: extraction.merchant || current.merchant, value: extraction.amount ? extraction.amount.toFixed(2).replace('.', ',') : current.value, category: extraction.category || current.category, date: extraction.date ? toISO(extraction.date) : current.date }))
+      setForm(current => ({ ...current, merchant: extraction.merchant || current.merchant, value: extraction.amount ? extraction.amount.toFixed(2).replace('.', ',') : current.value, category: extraction.category || inferCategory(extraction.merchant) || current.category, date: extraction.date ? toISO(extraction.date) : current.date }))
       const complete = Boolean(extraction.merchant && extraction.amount && extraction.date)
       setAnalysisStatus(complete ? 'success' : 'warning')
       setAnalysisNotice(complete ? 'Leitura com sucesso. Revise os dados acima e clique em Salvar gasto.' : 'Não foi possível ler todos os campos. Complete ou corrija os dados acima e clique em Salvar gasto.')
