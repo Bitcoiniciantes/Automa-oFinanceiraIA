@@ -45,7 +45,6 @@ export default function AuthGate() {
   const features = [
     { icon: '✦', title: 'Assistente IA', text: 'Pergunte sobre seus gastos e receba respostas na hora, direto no painel.' },
     { icon: '⧉', title: 'Leitura de notas', text: 'Anexe sua nota fiscal e o FinAI extrai valor, local e data automaticamente.' },
-    { icon: '◎', title: 'Visão geral', text: 'Renda, gastos e saldo sempre atualizados em um só lugar.' },
     { icon: '◈', title: 'Controle de gastos', text: 'Lance despesas e descubra para onde o seu dinheiro está indo.' },
     { icon: '◍', title: 'Dashboard automatizado', text: 'Gráficos e simulações dinâmicas mostram seu dinheiro em tempo real.' },
   ]
