@@ -298,7 +298,7 @@ export function Sidebar({ activeItem, onNavigate, subscriptionCount }) {
   return <aside className={styles.sidebar}>
     <div className={styles.logo}><span className={styles.logoMark}>✦</span><span className={styles.logoText}>FinAI<small className={styles.logoSub}>Automação Financeira</small></span></div>
     <nav className={styles.nav}>{items.map(([label, icon]) => <button key={label} className={activeItem === label ? styles.active : ''} onClick={() => onNavigate(label)}><span className={styles.navIcon}>{icon}</span>{label}{label === 'Assinaturas' && <span className={styles.navBadge}>{subscriptionCount}</span>}</button>)}</nav>
-    <button className={styles.sidebarSignOut} onClick={() => signOut(auth)}>Sair da conta</button><div className={styles.upgrade}><b>Faça seu dinheiro render</b><p>Receba insights personalizados com o FinAI Pro.</p><button>Conhecer o Pro →</button></div>
+    <button className={styles.sidebarSignOut} onClick={() => signOut(auth)}>Sair da conta</button><div className={styles.upgrade}><b>Faça seu dinheiro render</b><p>Receba insights personalizados com o FinAI Pro.</p><button onClick={() => onNavigate('Assistente IA')}>Conhecer o Pro →</button></div>
   </aside>
 }
 
