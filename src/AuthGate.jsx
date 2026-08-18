@@ -57,7 +57,6 @@ export default function AuthGate() {
       </header>
 
       <section className={styles.hero}>
-        <p className={styles.heroTag}>Controle financeiro inteligente com IA</p>
         <h1>E se você pudesse conversar com o <span>seu próprio dinheiro</span>?</h1>
         <p className={styles.heroSub}>Esqueça as planilhas chatas. Envie a foto da nota fiscal, o FinAI extrai os dados e organiza tudo. Quer saber para onde foi seu salário? É só perguntar.</p>
         <button className={styles.heroButton} onClick={scrollToAuth}>Ver a mágica acontecer</button>
