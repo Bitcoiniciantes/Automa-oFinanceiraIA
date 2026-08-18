@@ -57,10 +57,18 @@ export default function AuthGate() {
       </header>
 
       <section className={styles.hero}>
-        <h1>Suas finanças no piloto <span>automático</span></h1>
-        <p className={styles.heroTag}>controle financeiro inteligente</p>
-        <p className={styles.heroSub}>O FinAI lê suas notas, organiza seus gastos e responde suas dúvidas com IA — tudo em um só lugar.</p>
-        <button className={styles.heroButton} onClick={scrollToAuth}>Começar agora →</button>
+        <p className={styles.heroTag}>Controle financeiro inteligente com IA</p>
+        <h1>E se você pudesse conversar com o <span>seu próprio dinheiro</span>?</h1>
+        <p className={styles.heroSub}>Esqueça as planilhas chatas. Envie a foto da nota fiscal, o FinAI extrai os dados e organiza tudo. Quer saber para onde foi seu salário? É só perguntar.</p>
+        <button className={styles.heroButton} onClick={scrollToAuth}>Ver a mágica acontecer</button>
+        <div className={styles.chatDemo}>
+          <div className={styles.chatDemoHead}>Assistente FinAI · online</div>
+          <div className={styles.chatDemoBody}>
+            <div className={`${styles.demoBubble} ${styles.demoUser}`}>Quanto eu gastei com delivery este mês?</div>
+            <div className={styles.demoTyping}><span /><span /><span /></div>
+            <div className={`${styles.demoBubble} ${styles.demoAi}`}>Você gastou R$ 345,00 em delivery este mês — 15% a menos que no mês passado.</div>
+          </div>
+        </div>
       </section>
 
       <section className={styles.features}>
