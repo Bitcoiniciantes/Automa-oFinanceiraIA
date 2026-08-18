@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -24,3 +25,6 @@ if (appCheckSiteKey && !import.meta.env.DEV) {
 export const db = getFirestore(app)
 export const auth = getAuth(app)
 
+
+const ai = getAI(app, { backend: new GoogleAIBackend() })
+export const geminiModel = getGenerativeModel(ai, { model: import.meta.env.VITE_GEMINI_MODEL || 'gemini-3.5-flash-lite' })
