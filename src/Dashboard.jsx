@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
+import { auth, db, storage } from './firebase'
 import styles from './Dashboard.module.css'
 
 const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
