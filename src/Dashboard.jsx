@@ -289,21 +289,22 @@ function buildInsight(transactions, subscriptions) {
   return <>Acompanhe seus gastos para identificar oportunidades de economia.</>
 }
 
+const NAV_ITEMS = [
+  ['Visão geral', <DashboardIcon key="overview" />],
+  ['Lançamentos', <BillIcon key="expenses" />],
+  ['Assinaturas', <WalletIcon key="subscriptions" />],
+  ['Assistente IA', <BellIcon key="assistant" />],
+]
+
 export function Sidebar({ activeItem, onNavigate, subscriptionCount }) {
-  const items = [
-    ['Visão geral', <DashboardIcon key="overview" />],
-    ['Lançamentos', <BillIcon key="expenses" />],
-    ['Assinaturas', <WalletIcon key="subscriptions" />],
-    ['Assistente IA', <BellIcon key="assistant" />],
-  ]
   return <aside className={styles.sidebar}>
     <div className={styles.logo}><span className={styles.logoMark}>✦</span><span className={styles.logoText}>FinAI<small className={styles.logoSub}>Automação Financeira</small></span></div>
-    <nav className={styles.nav}>{items.map(([label, icon]) => <button key={label} className={activeItem === label ? styles.active : ''} onClick={() => onNavigate(label)}><span className={styles.navIcon}>{icon}</span>{label}{label === 'Assinaturas' && <span className={styles.navBadge}>{subscriptionCount}</span>}</button>)}</nav>
+    <nav className={styles.nav}>{NAV_ITEMS.map(([label, icon]) => <button key={label} className={activeItem === label ? styles.active : ''} onClick={() => onNavigate(label)}><span className={styles.navIcon}>{icon}</span>{label}{label === 'Assinaturas' && <span className={styles.navBadge}>{subscriptionCount}</span>}</button>)}</nav>
     <button className={styles.sidebarSignOut} onClick={() => signOut(auth)}>Sair da conta</button><div className={styles.upgrade}><b>Faça seu dinheiro render</b><p>Receba insights personalizados com o FinAI Pro.</p><button onClick={() => onNavigate('Assistente IA')}>Conhecer o Pro →</button></div>
   </aside>
 }
 
-export function Topbar({ user, searchQuery, onSearchChange, searchOpen, onToggleSearch }) {
+export function Topbar({ user, searchQuery, onSearchChange, searchOpen, onToggleSearch, onToggleMenu }) {
   const now = new Date()
   const hour = now.getHours()
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
@@ -314,7 +315,7 @@ export function Topbar({ user, searchQuery, onSearchChange, searchOpen, onToggle
     const hide = setTimeout(() => setGreetingState('gone'), 20000)
     return () => { clearTimeout(fade); clearTimeout(hide) }
   }, [])
-  return <><header className={styles.topbar}><div><p className={styles.eyebrow}>{dateLabel}</p>{greetingState !== 'gone' && <h1 className={`${styles.title} ${greetingState === 'fading' ? styles.titleFade : ''}`}>{greeting}, {user.name} <span>👋</span></h1>}</div><div className={styles.topActions}><button className={`${styles.iconButton} ${styles.mobileMenu}`}>☰</button><button className={`${styles.iconButton} ${searchOpen ? styles.iconButtonActive : ''}`} aria-label="Buscar lançamentos" onClick={onToggleSearch}>⌕</button><div className={styles.avatar}><span>{user.fullName}</span><span className={styles.avatarFace}>{user.initials}</span></div><button className={styles.signOut} onClick={() => signOut(auth)}>Sair</button></div></header>{searchOpen && <div className={styles.searchBar}><span className={styles.searchIcon}>⌕</span><input value={searchQuery} onChange={event => onSearchChange(event.target.value)} placeholder="Buscar lançamentos por nome, categoria ou valor…" aria-label="Buscar lançamentos"/></div>}</>
+  return <><header className={styles.topbar}><div><p className={styles.eyebrow}>{dateLabel}</p>{greetingState !== 'gone' && <h1 className={`${styles.title} ${greetingState === 'fading' ? styles.titleFade : ''}`}>{greeting}, {user.name} <span>👋</span></h1>}</div><div className={styles.topActions}><button className={`${styles.iconButton} ${styles.mobileMenu}`} aria-label="Abrir menu" onClick={onToggleMenu}>☰</button><button className={`${styles.iconButton} ${searchOpen ? styles.iconButtonActive : ''}`} aria-label="Buscar lançamentos" onClick={onToggleSearch}>⌕</button><div className={styles.avatar}><span>{user.fullName}</span><span className={styles.avatarFace}>{user.initials}</span></div><button className={styles.signOut} onClick={() => signOut(auth)}>Sair</button></div></header>{searchOpen && <div className={styles.searchBar}><span className={styles.searchIcon}>⌕</span><input value={searchQuery} onChange={event => onSearchChange(event.target.value)} placeholder="Buscar lançamentos por nome, categoria ou valor…" aria-label="Buscar lançamentos"/></div>}</>
 }
 
 export function StatCard({ label, value, change, icon, tone, down }) {
@@ -758,6 +759,7 @@ export default function Dashboard({ userId }) {
   const [activeItem, setActiveItem] = useState('Visão geral')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -789,5 +791,5 @@ export default function Dashboard({ userId }) {
 
   const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel transactions={data.transactions}/><MonthlyComparePanel transactions={data.transactions}/><div className={styles.lower}><TransactionList userId={userId} transactions={filteredTransactions} onChanged={change => applyChange('transactions', change)}/><CategoryPanel transactions={data.transactions}/></div></section><aside className={styles.side}><SubscriptionRadar userId={userId} subscriptions={data.subscriptions} onChanged={change => applyChange('subscriptions', change)}/><InsightCard insight={insight} onNavigate={setActiveItem}/></aside></> : activeItem === 'Lançamentos' ? <section><div className={styles.pageIntro}><h2>Lançamentos</h2><p>Cadastre, edite ou exclua seus lançamentos.</p></div><ExpenseForm userId={userId} transactions={data.transactions} onSaved={transaction => applyChange('transactions', { added: transaction })}/><TransactionList userId={userId} transactions={filteredTransactions} onChanged={change => applyChange('transactions', change)}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe, adicione ou edite suas assinaturas.</p></div><SubscriptionRadar userId={userId} subscriptions={data.subscriptions} onChanged={change => applyChange('subscriptions', change)}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data} stats={stats} userId={userId}/></section>
 
-  return <div className={styles.app}><Sidebar activeItem={activeItem} onNavigate={setActiveItem} subscriptionCount={data.subscriptions.length}/><main><Topbar user={data.user} searchQuery={searchQuery} onSearchChange={setSearchQuery} searchOpen={searchOpen} onToggleSearch={() => setSearchOpen(open => !open)}/><div className={styles.content}>{pageContent}</div></main></div>
+  return <div className={styles.app}><Sidebar activeItem={activeItem} onNavigate={setActiveItem} subscriptionCount={data.subscriptions.length}/><main><Topbar user={data.user} searchQuery={searchQuery} onSearchChange={setSearchQuery} searchOpen={searchOpen} onToggleSearch={() => setSearchOpen(open => !open)} onToggleMenu={() => setMobileMenuOpen(open => !open)}/><div className={styles.content}>{pageContent}</div></main>{mobileMenuOpen && <div className={styles.mobileNavOverlay} onClick={() => setMobileMenuOpen(false)}><div className={styles.mobileNavPanel} onClick={event => event.stopPropagation()}><div className={styles.logo}><span className={styles.logoMark}>✦</span><span className={styles.logoText}>FinAI<small className={styles.logoSub}>Automação Financeira</small></span></div><nav className={styles.nav}>{NAV_ITEMS.map(([label, icon]) => <button key={label} className={activeItem === label ? styles.active : ''} onClick={() => { setActiveItem(label); setMobileMenuOpen(false) }}><span className={styles.navIcon}>{icon}</span>{label}{label === 'Assinaturas' && <span className={styles.navBadge}>{data.subscriptions.length}</span>}</button>)}</nav><button className={styles.sidebarSignOut} onClick={() => signOut(auth)}>Sair da conta</button></div></div>}</div>
 }

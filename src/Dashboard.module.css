@@ -17,7 +17,7 @@ main{flex:1;max-width:1500px;margin:0 auto;padding:29px 42px 44px}.topbar{displa
 
 .signOut{background:transparent;color:var(--muted);font-size:12px;font-weight:650;padding:8px 0}.signOut:hover{color:var(--brand)}
 
-.sidebarSignOut{width:100%;padding:10px 12px;border-radius:10px;background:#fff0f1;color:#bd5662;text-align:left;font-size:12px;font-weight:700}.sidebarSignOut:hover{background:#ffe3e6}
+.sidebarSignOut{width:100%;padding:10px 12px;border-radius:10px;background:#fff0f1;color:#bd5662;text-align:left;font-size:12px;font-weight:700}.sidebarSignOut:hover{background:#ffe3e6}.mobileNavOverlay{position:fixed;inset:0;z-index:50;background:rgba(20,24,44,.45);display:none}.mobileNavPanel{position:absolute;top:0;left:0;bottom:0;width:min(78vw,300px);background:#fff;border-right:1px solid var(--line);padding:24px 18px;display:flex;flex-direction:column;gap:26px;box-shadow:0 0 40px rgba(0,0,0,.25);overflow:auto}@media(max-width:700px){.mobileNavOverlay{display:block}}
 
 .pageIntro{margin-bottom:20px}.pageIntro h2{font-size:22px;margin:0 0 7px}.pageIntro p{color:var(--muted);margin:0;font-size:13px}
 
