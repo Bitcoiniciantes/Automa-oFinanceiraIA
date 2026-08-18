@@ -340,24 +340,27 @@ function buildMonthlySummary(transactions) {
   const months = []
   for (let i = 5; i >= 0; i -= 1) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    months.push({ key: monthKey(date), label: MONTH_LABELS[date.getMonth()], gastos: 0, lancamentos: 0 })
+    months.push({ key: monthKey(date), label: MONTH_LABELS[date.getMonth()], gastos: 0, lancamentos: 0, itens: [] })
   }
   const buckets = Object.fromEntries(months.map(month => [month.key, month]))
   transactions.forEach(transaction => {
-    const bucket = buckets[monthKey(parseTransactionDate(transaction.date))]
+    const date = parseTransactionDate(transaction.date)
+    const bucket = buckets[monthKey(date)]
     if (!bucket) return
     bucket.lancamentos += 1
     if (isExpense(transaction)) bucket.gastos += Math.abs(parseAmount(transaction))
+    bucket.itens.push({ id: transaction.id || `${transaction.merchant}-${transaction.date}`, merchant: transaction.merchant, date, value: transaction.value })
   })
   return months
 }
 
 export function MonthlyComparePanel({ transactions }) {
   const months = useMemo(() => buildMonthlySummary(transactions), [transactions])
+  const [openKey, setOpenKey] = useState(null)
   const maxGasto = Math.max(1, ...months.map(month => month.gastos))
   const hasData = months.some(month => month.lancamentos > 0)
   const current = months[months.length - 1]
-  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Comparativo mensal</h2><span className={styles.panelNote}>{hasData ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos` : 'Sem lançamentos nos últimos 6 meses'}</span></div>{hasData && <div className={styles.monthRows}>{months.map(month => { const isCurrent = month.key === monthKey(new Date()); return <div className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''}`} key={month.key}><span className={styles.monthLabel}>{isCurrent ? 'Este mês' : month.label}</span><span className={styles.monthTrack}><i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} /></span><span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span><span className={styles.monthCount}>{month.lancamentos}</span></div> })}</div>}</article>
+  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Comparativo mensal</h2><span className={styles.panelNote}>{hasData ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos` : 'Sem lançamentos nos últimos 6 meses'}</span></div>{hasData && <div className={styles.monthRows}>{months.map(month => { const isCurrent = month.key === monthKey(new Date()); const open = month.key === openKey; return <div key={month.key} className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''} ${open ? styles.monthOpen : ''}`} onClick={() => setOpenKey(open ? null : month.key)}><span className={styles.monthLabel}>{open ? '▾' : '▸'} {isCurrent ? 'Este mês' : month.label}</span><span className={styles.monthTrack}><i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} /></span><span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span><span className={styles.monthCount}>{month.lancamentos}</span>{open && <div className={styles.monthDetail}>{month.itens.map(item => <div className={styles.monthItem} key={item.id}><span>{item.merchant}</span><small>{item.date.toLocaleDateString('pt-BR')}</small><b>{item.value}</b></div>)}</div>}</div> })}</div>}</article>
 }
 
 export function TransactionItem({ transaction, onEdit, onDelete }) {
@@ -638,6 +641,33 @@ function SubscriptionForm({ userId, onSaved }) {
   return <form className={styles.expenseForm} onSubmit={submit}><div className={styles.subGrid}><label>Nome<input value={form.name} onChange={event => setForm(current => ({ ...current, name: event.target.value }))} placeholder="Ex.: Netflix" /></label><label>Valor<input value={form.value} onChange={event => setForm(current => ({ ...current, value: event.target.value }))} inputMode="decimal" placeholder="0,00" /></label><label>Próxima cobrança<input type="date" value={form.nextCharge} onChange={event => setForm(current => ({ ...current, nextCharge: event.target.value }))} required /></label><button className={styles.submitBtn} type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Adicionar'}</button></div>{error && <div className={styles.authError} role="alert">{error}</div>}</form>
 }
 
+function renderMarkdown(text) {
+  const escaped = String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const lines = escaped.split(/\r?\n/)
+  let html = ''
+  let inList = false
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false } }
+  lines.forEach(line => {
+    const trimmed = line.trim()
+    if (/^#{1,3}\s+/.test(trimmed)) {
+      closeList()
+      html += `<b>${trimmed.replace(/^#{1,3}\s+/, '')}</b><br/>`
+    } else if (/^[*•-]\s+/.test(trimmed)) {
+      if (!inList) { html += '<ul>'; inList = true }
+      html += `<li>${trimmed.replace(/^[*•-]\s+/, '')}</li>`
+    } else if (/^\d+[.)]\s+/.test(trimmed)) {
+      if (!inList) { html += '<ul>'; inList = true }
+      html += `<li>${trimmed.replace(/^\d+[.)]\s+/, '')}</li>`
+    } else {
+      closeList()
+      if (trimmed) html += `${trimmed}<br/>`
+    }
+  })
+  closeList()
+  const bold = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+  return bold.replace(/`([^`]+)`/g, '<code>$1</code>')
+}
+
 export function InsightCard({ insight }) {
   return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Insight do FinAI</h2><span className={styles.sparkle}>✦</span></div><p className={styles.insightText}>{insight}</p><button className={styles.insightLink}>Conversar com o Assistente →</button></article>
 }
@@ -693,7 +723,7 @@ function AssistantPanel({ data, stats, userId }) {
   return <article className={`${styles.card} ${styles.panel} ${styles.assistantPanel}`}>
     <div className={styles.panelHead}><h2 className={styles.panelTitle}>Conversa com o FinAI</h2><span className={styles.panelActions}><span className={styles.sparkle}>✦</span><button className={styles.chatClear} onClick={clearConversation} disabled={loading}>Limpar conversa</button></span></div>
     <form className={styles.chatForm} onSubmit={sendMessage}><input value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="Ex.: onde posso economizar?" aria-label="Mensagem para o assistente"/><button type="submit" disabled={loading || !prompt.trim()}>Enviar</button></form>
-    <div className={styles.chatMessages}>{loading && <div className={`${styles.chatMessage} ${styles.model}`}>Analisando seus dados…</div>}{messages.slice().reverse().map((message, index) => <div key={`${message.role}-${index}`} className={`${styles.chatMessage} ${styles[message.role]}`}>{message.provider && <small className={styles.chatProvider}>Respondido por: {message.provider === 'groq' ? 'Groq' : 'Gemini'}</small>}{message.text}</div>)}</div>
+    <div className={styles.chatMessages}>{loading && <div className={`${styles.chatMessage} ${styles.model}`}>Analisando seus dados…</div>}{messages.slice().reverse().map((message, index) => <div key={`${message.role}-${index}`} className={`${styles.chatMessage} ${styles[message.role]}`}>{message.provider && <small className={styles.chatProvider}>Respondido por: {message.provider === 'groq' ? 'Groq' : 'Gemini'}</small>}<span dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) }} /></div>)}</div>
   </article>
 }
 
