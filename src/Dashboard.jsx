@@ -406,7 +406,7 @@ export function MonthlyComparePanel({ transactions }) {
 }
 
 export function TransactionItem({ transaction, onEdit, onDelete }) {
-  const typeClass = styles[transaction.type] || styles.food
+  const typeClass = transaction.kind === 'gasto' || isExpense(transaction) ? styles.gasto : styles.receita
   return <div className={styles.expense}><span className={`${styles.merchantIcon} ${typeClass}`}>{transaction.initials}</span><div className={styles.expenseInfo}><b>{transaction.merchant}</b><small>{transaction.date} · {transaction.category}</small></div><span className={styles.expenseValue}>{transaction.value}</span>{transaction.id && <div className={styles.rowActions}><button className={styles.rowAction} onClick={onEdit} aria-label={`Editar ${transaction.merchant}`}>Editar</button><button className={`${styles.rowAction} ${styles.danger}`} onClick={onDelete} aria-label={`Excluir ${transaction.merchant}`}>Excluir</button></div>}</div>
 }
 
