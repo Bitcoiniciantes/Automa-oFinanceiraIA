@@ -2,7 +2,7 @@
 
 ## Contexto obrigatório
 
-Leia `PROJECT_SPEC.md` antes de alterar o projeto. O projeto está em `C:\Users\joelh\Documents\Codex\2026-08-17\va`.
+Leia `PROJECT_SPEC.md` antes de alterar o projeto. O projeto está em `C:\Users\joelh\Site Bitcoiniciantes\AutomaçaoFinanceriaIA\2026-08-17\2026-08-17\va`.
 
 ## Procedimento de trabalho
 
@@ -13,27 +13,38 @@ Leia `PROJECT_SPEC.md` antes de alterar o projeto. O projeto está em `C:\Users\
 5. Preserve layout, responsividade, textos e comportamento existentes.
 6. Para dados financeiros, valide o formato antes de renderizar.
 7. Mantenha Firebase/Firestore como backend atual, salvo instrução explícita em contrário.
-8. Use o fallback local sempre que a fonte remota estiver indisponível ou incompleta.
-9. Nunca exponha o conteúdo integral do `.env` em respostas, logs ou artefatos.
-10. Depois da alteração, execute `npm run build` e corrija todos os erros encontrados.
-11. Revise os arquivos modificados e informe exatamente o que mudou e quais validações passaram.
+8. Nunca exponha o conteúdo integral do `.env` em respostas, logs ou artefatos.
+9. Depois da alteração, execute `npm run lint`, `npm test` e `npm run build`, corrigindo todos os erros.
+10. Revise os arquivos modificados e informe exatamente o que mudou e quais validações passaram.
 
-## Escopo do backend atual
+## Arquitetura atual
 
-A leitura padrão é o documento Firestore `dashboards/default`. As variáveis Vite podem alterar coleção e documento:
+- SPA React + Vite (`vite.config.js`), com `react-router-dom` em modo `HashRouter` (rotas `#/`, `#/lancamentos`, `#/assinaturas`, `#/assistente`).
+- Auth: Firebase Authentication (e-mail/senha) via `src/firebase.js`, com App Check (ReCaptchaV3). Login/landing em `src/AuthGate.jsx`; painel em `src/Dashboard.jsx` (shell) com componentes em `src/components/` e helpers puros testados em `src/lib/finance.js` (+ `finance.test.js`).
+- Dados por usuário no Firestore:
 
-- `VITE_FIREBASE_DASHBOARD_COLLECTION`;
-- `VITE_FIREBASE_DASHBOARD_DOCUMENT`.
+```
+usuarios/{uid}                          (doc pai pode ser virtual — só subcoleções existem)
+├── transacoes/{id}        # gasto ou receita; { merchant, value, date, category, type, ... }
+├── assinaturas/{id}       # { name, initials, type, chargeDate, nextCharge, value, amount }
+└── assistente/conversa    # { messages: [...] }
+```
 
-O formato de dados e o comportamento de fallback estão descritos em `PROJECT_SPEC.md`.
+- `src/Dashboard.module.css` usa CSS Modules; em produção os nomes de classe são hasheados (não usar seletores de classe em probes).
+- Worker Cloudflare (`bitcoiniciantes-ia.bitcoiniciantes.workers.dev`) faz a leitura de notas e o Assistente IA; endpoints usados em `src/components/Transactions.jsx` e `src/components/Assistant.jsx`.
+
+## Deploy
+
+- Branch `agent/supabase-invoice-upload` == `main`. Push em `main` dispara GitHub Actions (base `/Automa-oFinanceiraIA/`) e Cloudflare Pages (base `/`).
+- Build local usa base `/Automa-oFinanceiraIA/`; para o Cloudflare o build precisa de `--base=/`.
+- Verificar deploy lendo o hash `assets/index-*.js` no HTML publicado (latência do Cloudflare pode passar de 100 s).
 
 ## Restrições
 
 - Não trocar o backend sem autorização explícita.
-- Não apagar `mockData` enquanto a integração remota não estiver comprovadamente completa.
 - Não alterar tokens visuais globais sem necessidade.
 - Não criar credenciais fictícias.
-- Não declarar uma integração como concluída sem validar o build.
+- Não declarar uma integração como concluída sem validar lint, testes e build.
 - Se faltar informação de negócio ou esquema do Firestore, registre a incerteza e implemente somente comportamento compatível com o esquema existente.
 
 ## Formato da entrega
@@ -44,21 +55,3 @@ A resposta final deve conter apenas:
 - arquivos modificados;
 - comandos de validação executados e resultado;
 - bloqueios reais, se existirem.
-
-
-## Plano obrigatório de execução
-
-Siga esta ordem para finalizar o projeto. Não marque o projeto como concluído se alguma etapa estiver pendente:
-
-1. Validar o Firestore: confirmar `dashboards/default`, testar dados completos, parciais, documento inexistente, falha de conexão e fallback.
-2. Implementar autenticação: Firebase Authentication, entrada, saída, sessão e associação dos dados ao usuário.
-3. Definir regras de segurança: acesso por usuário, cenários autorizados/não autorizados e índices de produção.
-4. Substituir dados estáticos: gráfico, categorias, totais, assinaturas, alertas, datas e valores devem vir do backend.
-5. Implementar as telas da navegação: “Meus gastos”, “Assinaturas” e “Assistente IA” devem ser funcionais.
-6. Implementar operações de dados: criar, editar e excluir transações; gerenciar assinaturas; validar formulários.
-7. Conectar o Assistente IA: integração server-side, chaves protegidas, contexto por usuário e tratamento de falhas.
-8. Adicionar testes: componentes, Firestore, fallback, autenticação, permissões, operações e responsividade.
-9. Preparar produção: ambiente, hospedagem, domínio, regras, índices, monitoramento e build.
-10. Validar acessibilidade e responsividade: teclado, foco, labels, contraste, loading, erro, vazio, retry e ações reais nos botões.
-
-Os critérios detalhados de conclusão de cada etapa estão em `PROJECT_SPEC.md`, na seção “Plano obrigatório para finalizar o projeto”.

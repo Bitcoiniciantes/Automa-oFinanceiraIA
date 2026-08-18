@@ -52,26 +52,46 @@ export default function AuthGate() {
   return (
     <div className={styles.landing}>
       <header className={styles.landingNav}>
-        <div className={styles.logo}><span className={styles.logoMark}>✦</span><div className={styles.logoText}>FinAI<div className={styles.logoSub}>Automação Financeira</div></div></div>
-        <button className={styles.landingCta} onClick={scrollToAuth}>Entrar</button>
+        <div className={styles.logo}>
+          <span className={styles.logoMark}>✦</span>
+          <div className={styles.logoText}>
+            FinAI<div className={styles.logoSub}>Automação Financeira</div>
+          </div>
+        </div>
+        <button className={styles.landingCta} onClick={scrollToAuth}>
+          Entrar
+        </button>
       </header>
 
       <section className={styles.hero}>
-        <h1>E se você pudesse conversar com o <span>seu próprio dinheiro</span>?</h1>
-        <p className={styles.heroSub}>Esqueça as planilhas chatas. Envie a foto da nota fiscal, o FinAI extrai os dados e organiza tudo. Quer saber para onde foi seu salário? É só perguntar.</p>
+        <h1>
+          E se você pudesse conversar com o <span>seu próprio dinheiro</span>?
+        </h1>
+        <p className={styles.heroSub}>
+          Esqueça as planilhas chatas. Envie a foto da nota fiscal, o FinAI extrai os dados e organiza tudo. Quer saber para onde foi seu
+          salário? É só perguntar.
+        </p>
         <div className={styles.chatDemo}>
           <div className={styles.chatDemoHead}>Assistente FinAI · online</div>
           <div className={styles.chatDemoBody}>
             <div className={`${styles.demoBubble} ${styles.demoUser}`}>Quanto eu gastei com delivery este mês?</div>
-            <div className={styles.demoTyping}><span /><span /><span /></div>
-            <div className={`${styles.demoBubble} ${styles.demoAi}`}>Você gastou R$ 345,00 em delivery este mês — 15% a menos que no mês passado.</div>
+            <div className={styles.demoTyping}>
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className={`${styles.demoBubble} ${styles.demoAi}`}>
+              Você gastou R$ 345,00 em delivery este mês — 15% a menos que no mês passado.
+            </div>
           </div>
         </div>
-        <button className={styles.heroButton} onClick={scrollToAuth}>Ver a mágica acontecer</button>
+        <button className={styles.heroButton} onClick={scrollToAuth}>
+          Ver a mágica acontecer
+        </button>
       </section>
 
       <section className={styles.features}>
-        {features.map(feature => (
+        {features.map((feature) => (
           <div className={styles.feature} key={feature.title}>
             <span className={styles.featureIcon}>{feature.icon}</span>
             <b>{feature.title}</b>
@@ -82,14 +102,44 @@ export default function AuthGate() {
 
       <main className={styles.authPage}>
         <form id="authCard" className={styles.authCard} onSubmit={submit}>
-          <div className={styles.logo}><span className={styles.logoMark}>✦</span> FinAI</div>
+          <div className={styles.logo}>
+            <span className={styles.logoMark}>✦</span> FinAI
+          </div>
           <h1>{registering ? 'Criar sua conta' : 'Entrar no FinAI'}</h1>
           <p>Acesse seus dados financeiros com segurança.</p>
-          <label>E-mail<input type="email" value={email} onChange={event => setEmail(event.target.value)} required autoComplete="email" /></label>
-          <label>Senha<input type="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={6} autoComplete={registering ? 'new-password' : 'current-password'} /></label>
-          {error && <div className={styles.authError} role="alert">{error}</div>}
-          <button className={styles.authSubmit} disabled={loading}>{loading ? 'Aguarde…' : registering ? 'Criar conta' : 'Entrar'}</button>
-          <button type="button" className={styles.authSwitch} onClick={() => { setRegistering(!registering); setError('') }}>{registering ? 'Já tenho uma conta' : 'Criar uma conta'}</button>
+          <label>
+            E-mail
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" />
+          </label>
+          <label>
+            Senha
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              minLength={6}
+              autoComplete={registering ? 'new-password' : 'current-password'}
+            />
+          </label>
+          {error && (
+            <div className={styles.authError} role="alert">
+              {error}
+            </div>
+          )}
+          <button className={styles.authSubmit} disabled={loading}>
+            {loading ? 'Aguarde…' : registering ? 'Criar conta' : 'Entrar'}
+          </button>
+          <button
+            type="button"
+            className={styles.authSwitch}
+            onClick={() => {
+              setRegistering(!registering)
+              setError('')
+            }}
+          >
+            {registering ? 'Já tenho uma conta' : 'Criar uma conta'}
+          </button>
         </form>
       </main>
 
