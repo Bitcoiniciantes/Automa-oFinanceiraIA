@@ -71,18 +71,16 @@ async function fetchDashboardData(userId) {
   try {
     const userRef = doc(db, userCollection, userId)
     const userSnapshot = await getDoc(userRef)
-    if (!userSnapshot.exists()) return { data: mergeDashboardData({ transactions: [], subscriptions: [] }), source: 'empty' }
-
     const [transactionsSnapshot, subscriptionsSnapshot] = await Promise.all([
       getDocs(collection(userRef, 'transacoes')),
       getDocs(collection(userRef, 'assinaturas')),
     ])
     const remoteData = {
-      user: { name: userSnapshot.data().name },
+      user: userSnapshot.exists() ? { name: userSnapshot.data().name } : {},
       transactions: transactionsSnapshot.docs.map(item => ({ id: item.id, ...item.data() })),
       subscriptions: subscriptionsSnapshot.docs.map(item => ({ id: item.id, ...item.data() })),
     }
-    return { data: mergeDashboardData(remoteData), source: 'firestore' }
+    return { data: mergeDashboardData(remoteData), source: userSnapshot.exists() ? 'firestore' : 'empty' }
   } catch (error) {
     console.warn('Não foi possível carregar o dashboard do Firestore.', error)
     return { data: mergeDashboardData({ transactions: [], subscriptions: [] }), source: 'empty' }
