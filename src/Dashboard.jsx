@@ -351,9 +351,19 @@ function buildMonthlySummary(transactions) {
     const date = parseTransactionDate(transaction.date)
     const bucket = buckets[monthKey(date)]
     if (!bucket) return
-    bucket.lancamentos += 1
-    if (isExpense(transaction)) bucket.gastos += Math.abs(parseAmount(transaction))
-    bucket.itens.push({ id: transaction.id || `${transaction.merchant}-${transaction.date}`, merchant: transaction.merchant, date, value: transaction.value })
+    const amount = Math.abs(parseAmount(transaction))
+    const expense = isExpense(transaction)
+    if (expense) bucket.gastos += amount
+    const groupKey = `${String(transaction.merchant || '').trim().toLowerCase()}|${date.toDateString()}`
+    const existing = bucket.itens.find(item => item.groupKey === groupKey)
+    if (existing) {
+      existing.total += amount
+      existing.count += 1
+      existing.value = `${expense ? '− ' : ''}R$ ${existing.total.toFixed(2).replace('.', ',')}`
+    } else {
+      bucket.lancamentos += 1
+      bucket.itens.push({ groupKey, merchant: transaction.merchant, date, total: amount, count: 1, value: `${expense ? '− ' : ''}R$ ${amount.toFixed(2).replace('.', ',')}` })
+    }
   })
   return months
 }
@@ -364,7 +374,7 @@ export function MonthlyComparePanel({ transactions }) {
   const maxGasto = Math.max(1, ...withData.map(month => month.gastos))
   const current = months[months.length - 1]
   const hasData = withData.length > 0
-  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Comparativo mensal</h2><span className={styles.panelNote}>{hasData ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos` : 'Sem lançamentos nos últimos 6 meses'}</span></div>{hasData && <div className={styles.monthRows}>{withData.map(month => { const isCurrent = month.key === monthKey(new Date()); return <div key={month.key} className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''}`}><span className={styles.monthLabel}>{isCurrent ? 'Este mês' : month.label}</span><span className={styles.monthTrack}><i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} /></span><span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span><span className={styles.monthCount}>{month.lancamentos}</span><div className={styles.monthDetail}>{month.itens.map(item => <div className={styles.monthItem} key={item.id}><span>{item.merchant}</span><small>{item.date.toLocaleDateString('pt-BR')}</small><b>{item.value}</b></div>)}</div></div> })}</div>}</article>
+  return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Comparativo mensal</h2><span className={styles.panelNote}>{hasData ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos` : 'Sem lançamentos nos últimos 6 meses'}</span></div>{hasData && <div className={styles.monthRows}>{withData.map(month => { const isCurrent = month.key === monthKey(new Date()); return <div key={month.key} className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''}`}><span className={styles.monthLabel}>{isCurrent ? 'Este mês' : month.label}</span><span className={styles.monthTrack}><i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} /></span><span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span><span className={styles.monthCount}>{month.lancamentos}</span><div className={styles.monthDetail}>{month.itens.map(item => <div className={styles.monthItem} key={item.groupKey}><span>{item.merchant}{item.count > 1 && <em className={styles.monthCountBadge}>×{item.count}</em>}</span><small>{item.date.toLocaleDateString('pt-BR')}</small><b>{item.value}</b></div>)}</div></div> })}</div>}</article>
 }
 
 export function TransactionItem({ transaction, onEdit, onDelete }) {
