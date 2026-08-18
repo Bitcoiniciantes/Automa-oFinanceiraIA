@@ -40,6 +40,15 @@ const mockData = {
   insight: <>Você gastou <b>18% menos</b> com alimentação este mês. Mantendo esse ritmo, pode economizar até <b>R$ 320</b> até o fim do ano.</>,
 }
 
+function accountUser() {
+  const account = auth?.currentUser
+  const email = account?.email || ''
+  const display = account?.displayName || email.split('@')[0] || 'Usuário'
+  const parts = display.trim().split(/\s+/).filter(Boolean)
+  const initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : display.slice(0, 2).toUpperCase()
+  return { name: parts[0] || 'Usuário', fullName: display, initials }
+}
+
 function pickDefined(obj) {
   if (!obj || typeof obj !== 'object') return {}
   return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined && value !== null && value !== ''))
@@ -50,7 +59,7 @@ function mergeDashboardData(remoteData) {
   return {
     ...mockData,
     ...remote,
-    user: { ...mockData.user, ...pickDefined(remote.user) },
+    user: { ...accountUser(), ...pickDefined(remote.user) },
     stats: Array.isArray(remote.stats) ? remote.stats : mockData.stats,
     transactions: Array.isArray(remote.transactions) ? remote.transactions : mockData.transactions,
     subscriptions: Array.isArray(remote.subscriptions) ? remote.subscriptions : mockData.subscriptions,
@@ -62,7 +71,7 @@ async function fetchDashboardData(userId) {
   try {
     const userRef = doc(db, userCollection, userId)
     const userSnapshot = await getDoc(userRef)
-    if (!userSnapshot.exists()) return { data: mockData, source: 'fallback' }
+    if (!userSnapshot.exists()) return { data: mergeDashboardData({ transactions: [], subscriptions: [] }), source: 'empty' }
 
     const [transactionsSnapshot, subscriptionsSnapshot] = await Promise.all([
       getDocs(collection(userRef, 'transacoes')),
@@ -76,7 +85,7 @@ async function fetchDashboardData(userId) {
     return { data: mergeDashboardData(remoteData), source: 'firestore' }
   } catch (error) {
     console.warn('Não foi possível carregar o dashboard do Firestore.', error)
-    return { data: mockData, source: 'fallback' }
+    return { data: mergeDashboardData({ transactions: [], subscriptions: [] }), source: 'empty' }
   }
 }
 
@@ -202,7 +211,6 @@ function findDuplicate(transactions, candidate) {
 }
 
 function buildStats(transactions) {
-  if (!transactions.some(transaction => parseAmount(transaction) !== 0)) return mockData.stats
   const now = new Date()
   const thisKey = monthKey(now)
   const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -273,8 +281,6 @@ function buildCategories(transactions) {
 
 function buildInsight(transactions, subscriptions) {
   const expenses = transactions.filter(transaction => isExpense(transaction))
-  const totalSpent = expenses.reduce((sum, transaction) => sum + Math.abs(parseAmount(transaction)), 0)
-  if (totalSpent <= 0) return mockData.insight
   const byCategory = {}
   expenses.forEach(transaction => {
     const category = transaction.category || 'Outros'
@@ -789,7 +795,7 @@ export default function Dashboard({ userId }) {
     return data.transactions.filter(transaction => [transaction.merchant, transaction.category, transaction.value, transaction.date].some(field => String(field || '').toLocaleLowerCase('pt-BR').includes(query)))
   }, [data.transactions, searchQuery])
 
-  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel transactions={data.transactions}/><MonthlyComparePanel transactions={data.transactions}/><div className={styles.lower}><TransactionList userId={userId} transactions={filteredTransactions} onChanged={change => applyChange('transactions', change)}/><CategoryPanel transactions={data.transactions}/></div></section><aside className={styles.side}><SubscriptionRadar userId={userId} subscriptions={data.subscriptions} onChanged={change => applyChange('subscriptions', change)}/><InsightCard insight={insight} onNavigate={setActiveItem}/></aside></> : activeItem === 'Lançamentos' ? <section><div className={styles.pageIntro}><h2>Lançamentos</h2><p>Cadastre, edite ou exclua seus lançamentos.</p></div><ExpenseForm userId={userId} transactions={data.transactions} onSaved={transaction => applyChange('transactions', { added: transaction })}/><TransactionList userId={userId} transactions={filteredTransactions} onChanged={change => applyChange('transactions', change)}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe, adicione ou edite suas assinaturas.</p></div><SubscriptionRadar userId={userId} subscriptions={data.subscriptions} onChanged={change => applyChange('subscriptions', change)}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data} stats={stats} userId={userId}/></section>
+  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' || dataSource === 'empty' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel transactions={data.transactions}/><MonthlyComparePanel transactions={data.transactions}/><div className={styles.lower}><TransactionList userId={userId} transactions={filteredTransactions} onChanged={change => applyChange('transactions', change)}/><CategoryPanel transactions={data.transactions}/></div></section><aside className={styles.side}><SubscriptionRadar userId={userId} subscriptions={data.subscriptions} onChanged={change => applyChange('subscriptions', change)}/><InsightCard insight={insight} onNavigate={setActiveItem}/></aside></> : activeItem === 'Lançamentos' ? <section><div className={styles.pageIntro}><h2>Lançamentos</h2><p>Cadastre, edite ou exclua seus lançamentos.</p></div><ExpenseForm userId={userId} transactions={data.transactions} onSaved={transaction => applyChange('transactions', { added: transaction })}/><TransactionList userId={userId} transactions={filteredTransactions} onChanged={change => applyChange('transactions', change)}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe, adicione ou edite suas assinaturas.</p></div><SubscriptionRadar userId={userId} subscriptions={data.subscriptions} onChanged={change => applyChange('subscriptions', change)}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data} stats={stats} userId={userId}/></section>
 
   return <div className={styles.app}><div className={styles.appBody}><Sidebar activeItem={activeItem} onNavigate={setActiveItem} subscriptionCount={data.subscriptions.length}/><main><Topbar user={data.user} searchQuery={searchQuery} onSearchChange={setSearchQuery} searchOpen={searchOpen} onToggleSearch={() => setSearchOpen(open => !open)} onToggleMenu={() => setMobileMenuOpen(open => !open)}/><div className={styles.content}>{pageContent}</div></main></div><footer className={styles.footer}><span><b>FinAI</b> · Automação Financeira</span><span>© {new Date().getFullYear()} FinAI — o radar para as suas finanças</span></footer>{mobileMenuOpen && <div className={styles.mobileNavOverlay} onClick={() => setMobileMenuOpen(false)}><div className={styles.mobileNavPanel} onClick={event => event.stopPropagation()}><div className={styles.logo}><span className={styles.logoMark}>✦</span><span className={styles.logoText}>FinAI<small className={styles.logoSub}>Automação Financeira</small></span></div><nav className={styles.nav}>{NAV_ITEMS.map(([label, icon]) => <button key={label} className={activeItem === label ? styles.active : ''} onClick={() => { setActiveItem(label); setMobileMenuOpen(false) }}><span className={styles.navIcon}>{icon}</span>{label}{label === 'Assinaturas' && <span className={styles.navBadge}>{data.subscriptions.length}</span>}</button>)}</nav><button className={styles.sidebarSignOut} onClick={() => signOut(auth)}>Sair da conta</button></div></div>}</div>
 }
