@@ -125,7 +125,7 @@ function AssistantPanel({ data }) {
       const response = await fetch(FINAI_AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, context: { transacoes: data.transactions, assinaturas: data.subscriptions, resumo: data.stats } }) })
       const result = await response.json()
       if (!response.ok || typeof result.answer !== 'string') throw new Error(result.error || 'Resposta indisponível')
-      setMessages(current => [...current, { role: 'model', text: result.answer }])
+      setMessages(current => [...current, { role: 'model', provider: result.provider, text: result.answer }])
     } catch (error) {
       console.error('Falha ao consultar o Assistente IA.', error)
       setMessages(current => [...current, { role: 'error', text: 'Não foi possível consultar o assistente agora. Tente novamente.' }])
@@ -133,7 +133,7 @@ function AssistantPanel({ data }) {
   }
   return <article className={`${styles.card} ${styles.panel} ${styles.assistantPanel}`}>
     <div className={styles.panelHead}><h2 className={styles.panelTitle}>Conversa com o FinAI</h2><span className={styles.sparkle}>✦</span></div>
-    <div className={styles.chatMessages}>{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`${styles.chatMessage} ${styles[message.role]}`}>{message.text}</div>)}{loading && <div className={`${styles.chatMessage} ${styles.model}`}>Analisando seus dados…</div>}</div>
+    <div className={styles.chatMessages}>{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`${styles.chatMessage} ${styles[message.role]}`}>{message.provider && <small className={styles.chatProvider}>Respondido por: {message.provider === 'groq' ? 'Groq' : 'Gemini'}</small>}{message.text}</div>)}{loading && <div className={`${styles.chatMessage} ${styles.model}`}>Analisando seus dados…</div>}</div>
     <form className={styles.chatForm} onSubmit={sendMessage}><input value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="Ex.: onde posso economizar?" aria-label="Mensagem para o assistente"/><button type="submit" disabled={loading || !prompt.trim()}>Enviar</button></form>
   </article>
 }
