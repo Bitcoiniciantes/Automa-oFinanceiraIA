@@ -10,7 +10,7 @@ const userCollection = 'usuarios'
 const MAX_INVOICE_SIZE = 5 * 1024 * 1024
 const MONTH_LABELS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 const CATEGORIES = ['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Educação', 'Outros']
-const RECEITA_CATEGORIES = ['Salário', 'Aluguel', 'Pró-Labore', 'Créditos diversos', 'Outros']
+const RECEITA_CATEGORIES = ['Salário', 'Aluguel', 'Pró-Labore', 'Renda passiva', 'Juros aplicações', 'Créditos diversos', 'Outros']
 const CATEGORY_TONES = { Moradia: 'brand', Alimentação: 'orange', Transporte: 'teal' }
 const CATEGORY_COLORS = { brand: '#635bff', orange: '#f2a94a', teal: '#57b9ad', gray: '#e7e8f2' }
 
