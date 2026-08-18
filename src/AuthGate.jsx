@@ -59,7 +59,6 @@ export default function AuthGate() {
       <section className={styles.hero}>
         <h1>E se você pudesse conversar com o <span>seu próprio dinheiro</span>?</h1>
         <p className={styles.heroSub}>Esqueça as planilhas chatas. Envie a foto da nota fiscal, o FinAI extrai os dados e organiza tudo. Quer saber para onde foi seu salário? É só perguntar.</p>
-        <button className={styles.heroButton} onClick={scrollToAuth}>Ver a mágica acontecer</button>
         <div className={styles.chatDemo}>
           <div className={styles.chatDemoHead}>Assistente FinAI · online</div>
           <div className={styles.chatDemoBody}>
@@ -68,6 +67,7 @@ export default function AuthGate() {
             <div className={`${styles.demoBubble} ${styles.demoAi}`}>Você gastou R$ 345,00 em delivery este mês — 15% a menos que no mês passado.</div>
           </div>
         </div>
+        <button className={styles.heroButton} onClick={scrollToAuth}>Ver a mágica acontecer</button>
       </section>
 
       <section className={styles.features}>
