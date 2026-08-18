@@ -57,8 +57,8 @@ export default function AuthGate() {
       </header>
 
       <section className={styles.hero}>
-        <p className={styles.heroTag}>Controle financeiro inteligente</p>
         <h1>Suas finanças no piloto <span>automático</span></h1>
+        <p className={styles.heroTag}>controle financeiro inteligente</p>
         <p className={styles.heroSub}>O FinAI lê suas notas, organiza seus gastos e responde suas dúvidas com IA — tudo em um só lugar.</p>
         <button className={styles.heroButton} onClick={scrollToAuth}>Começar agora →</button>
       </section>
