@@ -40,5 +40,53 @@ export default function AuthGate() {
     }
   }
 
-  return <main className={styles.authPage}><form className={styles.authCard} onSubmit={submit}><div className={styles.logo}><span className={styles.logoMark}>✦</span> FinAI</div><h1>{registering ? 'Criar sua conta' : 'Entrar no FinAI'}</h1><p>Acesse seus dados financeiros com segurança.</p><label>E-mail<input type="email" value={email} onChange={event => setEmail(event.target.value)} required autoComplete="email" /></label><label>Senha<input type="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={6} autoComplete={registering ? 'new-password' : 'current-password'} /></label>{error && <div className={styles.authError} role="alert">{error}</div>}<button className={styles.authSubmit} disabled={loading}>{loading ? 'Aguarde…' : registering ? 'Criar conta' : 'Entrar'}</button><button type="button" className={styles.authSwitch} onClick={() => { setRegistering(!registering); setError('') }}>{registering ? 'Já tenho uma conta' : 'Criar uma conta'}</button></form></main>
+  const scrollToAuth = () => document.getElementById('authCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+  const features = [
+    { icon: '✦', title: 'Assistente IA', text: 'Pergunte sobre seus gastos e receba respostas na hora, direto no painel.' },
+    { icon: '⧉', title: 'Leitura de notas', text: 'Anexe sua nota fiscal e o FinAI extrai valor, local e data automaticamente.' },
+    { icon: '◎', title: 'Visão geral', text: 'Renda, gastos e saldo sempre atualizados em um só lugar.' },
+    { icon: '◈', title: 'Controle de gastos', text: 'Lance despesas e descubra para onde o seu dinheiro está indo.' },
+  ]
+
+  return (
+    <div className={styles.landing}>
+      <header className={styles.landingNav}>
+        <div className={styles.logo}><span className={styles.logoMark}>✦</span><div className={styles.logoText}>FinAI<div className={styles.logoSub}>Automação Financeira</div></div></div>
+        <button className={styles.landingCta} onClick={scrollToAuth}>Entrar</button>
+      </header>
+
+      <section className={styles.hero}>
+        <p className={styles.heroTag}>Controle financeiro inteligente</p>
+        <h1>Suas finanças no piloto <span>automático</span></h1>
+        <p className={styles.heroSub}>O FinAI lê suas notas, organiza seus gastos e responde suas dúvidas com IA — tudo em um só lugar.</p>
+        <button className={styles.heroButton} onClick={scrollToAuth}>Começar agora →</button>
+      </section>
+
+      <section className={styles.features}>
+        {features.map(feature => (
+          <div className={styles.feature} key={feature.title}>
+            <span className={styles.featureIcon}>{feature.icon}</span>
+            <b>{feature.title}</b>
+            <p>{feature.text}</p>
+          </div>
+        ))}
+      </section>
+
+      <main className={styles.authPage}>
+        <form id="authCard" className={styles.authCard} onSubmit={submit}>
+          <div className={styles.logo}><span className={styles.logoMark}>✦</span> FinAI</div>
+          <h1>{registering ? 'Criar sua conta' : 'Entrar no FinAI'}</h1>
+          <p>Acesse seus dados financeiros com segurança.</p>
+          <label>E-mail<input type="email" value={email} onChange={event => setEmail(event.target.value)} required autoComplete="email" /></label>
+          <label>Senha<input type="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={6} autoComplete={registering ? 'new-password' : 'current-password'} /></label>
+          {error && <div className={styles.authError} role="alert">{error}</div>}
+          <button className={styles.authSubmit} disabled={loading}>{loading ? 'Aguarde…' : registering ? 'Criar conta' : 'Entrar'}</button>
+          <button type="button" className={styles.authSwitch} onClick={() => { setRegistering(!registering); setError('') }}>{registering ? 'Já tenho uma conta' : 'Criar uma conta'}</button>
+        </form>
+      </main>
+
+      <footer className={styles.landingFooter}>FinAI — o radar para as suas finanças</footer>
+    </div>
+  )
 }
