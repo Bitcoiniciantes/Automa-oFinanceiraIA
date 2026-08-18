@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
-import { auth, db } from './firebase'
+import { auth, db, geminiModel } from './firebase'
 import styles from './Dashboard.module.css'
 
 const Icon = ({ children, className = '' }) => <svg className={`${styles.icon} ${className}`} viewBox="0 0 24 24" aria-hidden="true">{children}</svg>
@@ -109,6 +109,32 @@ export function InsightCard({ insight }) {
   return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Insight do FinAI</h2><span className={styles.sparkle}>✦</span></div><p className={styles.insightText}>{insight}</p><button className={styles.insightLink}>Conversar com o Assistente →</button></article>
 }
 
+function AssistantPanel({ data }) {
+  const [messages, setMessages] = useState([{ role: 'model', text: 'Olá! Posso analisar seus gastos, receitas e assinaturas.' }])
+  const [prompt, setPrompt] = useState('')
+  const [loading, setLoading] = useState(false)
+  async function sendMessage(event) {
+    event.preventDefault()
+    const question = prompt.trim()
+    if (!question || loading) return
+    setPrompt('')
+    setMessages(current => [...current, { role: 'user', text: question }])
+    setLoading(true)
+    try {
+      const context = JSON.stringify({ transacoes: data.transactions, assinaturas: data.subscriptions, resumo: data.stats })
+      const result = await geminiModel.generateContent(`Você é o Assistente IA do FinAI. Responda em português do Brasil, com clareza e sem inventar dados. Use somente o contexto financeiro abaixo quando a pergunta pedir dados da conta. Contexto: ${context} Pergunta: ${question}`)
+      setMessages(current => [...current, { role: 'model', text: result.response.text() }])
+    } catch (error) {
+      console.error('Falha ao consultar o Gemini.', error)
+      setMessages(current => [...current, { role: 'error', text: 'Não foi possível consultar o assistente agora. Verifique a configuração do Gemini e tente novamente.' }])
+    } finally { setLoading(false) }
+  }
+  return <article className={`${styles.card} ${styles.panel} ${styles.assistantPanel}`}>
+    <div className={styles.panelHead}><h2 className={styles.panelTitle}>Conversa com o FinAI</h2><span className={styles.sparkle}>✦</span></div>
+    <div className={styles.chatMessages}>{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`${styles.chatMessage} ${styles[message.role]}`}>{message.text}</div>)}{loading && <div className={`${styles.chatMessage} ${styles.model}`}>Analisando seus dados…</div>}</div>
+    <form className={styles.chatForm} onSubmit={sendMessage}><input value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="Ex.: onde posso economizar?" aria-label="Mensagem para o assistente"/><button type="submit" disabled={loading || !prompt.trim()}>Enviar</button></form>
+  </article>
+}
 export default function Dashboard({ userId }) {
   const [data, setData] = useState(mockData)
   const [dataSource, setDataSource] = useState('carregando')
@@ -126,7 +152,7 @@ export default function Dashboard({ userId }) {
     return () => { cancelled = true }
   }, [userId])
 
-  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{data.stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel/><div className={styles.lower}><TransactionList transactions={data.transactions}/><CategoryPanel/></div></section><aside className={styles.side}><SubscriptionRadar subscriptions={data.subscriptions}/><InsightCard insight={data.insight}/></aside></> : activeItem === 'Meus gastos' ? <section><div className={styles.pageIntro}><h2>Meus gastos</h2><p>Consulte as transações carregadas da sua conta.</p></div><TransactionList transactions={data.transactions}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe suas próximas cobranças.</p></div><SubscriptionRadar subscriptions={data.subscriptions}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Seu assistente financeiro será conectado nesta área.</p></div><article className={styles.card + ' ' + styles.panel}><p className={styles.insightText}>A integração do assistente ainda está pendente. Os dados do dashboard já estão protegidos por autenticação.</p></article></section>
+  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{data.stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel/><div className={styles.lower}><TransactionList transactions={data.transactions}/><CategoryPanel/></div></section><aside className={styles.side}><SubscriptionRadar subscriptions={data.subscriptions}/><InsightCard insight={data.insight}/></aside></> : activeItem === 'Meus gastos' ? <section><div className={styles.pageIntro}><h2>Meus gastos</h2><p>Consulte as transações carregadas da sua conta.</p></div><TransactionList transactions={data.transactions}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe suas próximas cobranças.</p></div><SubscriptionRadar subscriptions={data.subscriptions}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data}/></section>
 
   return <div className={styles.app}><Sidebar activeItem={activeItem} onNavigate={setActiveItem}/><main><Topbar user={data.user}/><div className={styles.content}>{pageContent}</div></main></div>
 }
