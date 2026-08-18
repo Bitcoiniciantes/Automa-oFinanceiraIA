@@ -104,7 +104,7 @@ function ExpenseForm({ userId, onSaved }) {
     event.preventDefault(); setError('')
     const amount = Number(form.value.replace(',', '.'))
     if (!form.merchant.trim() || !Number.isFinite(amount) || amount <= 0) { setError('Informe o estabelecimento e um valor válido.'); return }
-    if (invoice && (invoice.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'application/pdf'].includes(invoice.type))) { setError('A nota deve ser JPG, PNG ou PDF de até 5 MB.'); return }
+    if (invoice) { setError('Anexos de nota fiscal estão temporariamente desativados sem Firebase Storage. Remova o arquivo para salvar somente o gasto.'); return }
     setSaving(true)
     try {
       const transactionRef = doc(collection(db, userCollection, userId, 'transacoes'))
