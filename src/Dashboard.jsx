@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
-import { auth, db, geminiModel } from './firebase'
 import styles from './Dashboard.module.css'
+
+const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
 
 const Icon = ({ children, className = '' }) => <svg className={`${styles.icon} ${className}`} viewBox="0 0 24 24" aria-hidden="true">{children}</svg>
 const DashboardIcon = () => <Icon><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></Icon>
@@ -121,12 +122,13 @@ function AssistantPanel({ data }) {
     setMessages(current => [...current, { role: 'user', text: question }])
     setLoading(true)
     try {
-      const context = JSON.stringify({ transacoes: data.transactions, assinaturas: data.subscriptions, resumo: data.stats })
-      const result = await geminiModel.generateContent(`Você é o Assistente IA do FinAI. Responda em português do Brasil, com clareza e sem inventar dados. Use somente o contexto financeiro abaixo quando a pergunta pedir dados da conta. Contexto: ${context} Pergunta: ${question}`)
-      setMessages(current => [...current, { role: 'model', text: result.response.text() }])
+      const response = await fetch(FINAI_AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question, context: { transacoes: data.transactions, assinaturas: data.subscriptions, resumo: data.stats } }) })
+      const result = await response.json()
+      if (!response.ok || typeof result.answer !== 'string') throw new Error(result.error || 'Resposta indisponível')
+      setMessages(current => [...current, { role: 'model', text: result.answer }])
     } catch (error) {
-      console.error('Falha ao consultar o Gemini.', error)
-      setMessages(current => [...current, { role: 'error', text: 'Não foi possível consultar o assistente agora. Verifique a configuração do Gemini e tente novamente.' }])
+      console.error('Falha ao consultar o Assistente IA.', error)
+      setMessages(current => [...current, { role: 'error', text: 'Não foi possível consultar o assistente agora. Tente novamente.' }])
     } finally { setLoading(false) }
   }
   return <article className={`${styles.card} ${styles.panel} ${styles.assistantPanel}`}>
