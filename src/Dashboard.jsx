@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
+import { addDoc, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import styles from './Dashboard.module.css'
 
 const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
@@ -93,6 +94,28 @@ export function TransactionItem({ transaction }) {
   return <div className={styles.expense}><span className={`${styles.merchantIcon} ${styles[transaction.type]}`}>{transaction.initials}</span><div className={styles.expenseInfo}><b>{transaction.merchant}</b><small>{transaction.date} · {transaction.category}</small></div><span className={styles.expenseValue}>{transaction.value}</span></div>
 }
 
+function ExpenseForm({ userId, onSaved }) {
+  const [form, setForm] = useState({ merchant: '', value: '', category: 'Alimentação', date: new Date().toISOString().slice(0, 10) })
+  const [invoice, setInvoice] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  async function submit(event) {
+    event.preventDefault(); setError('')
+    const amount = Number(form.value.replace(',', '.'))
+    if (!form.merchant.trim() || !Number.isFinite(amount) || amount <= 0) { setError('Informe o estabelecimento e um valor válido.'); return }
+    if (invoice && (invoice.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'application/pdf'].includes(invoice.type))) { setError('A nota deve ser JPG, PNG ou PDF de até 5 MB.'); return }
+    setSaving(true)
+    try {
+      const transactionRef = doc(collection(db, userCollection, userId, 'transacoes'))
+      let invoiceUrl = ''
+      if (invoice) { const fileRef = ref(storage, `usuarios/${userId}/notas-fiscais/${transactionRef.id}-${invoice.name}`); await uploadBytes(fileRef, invoice); invoiceUrl = await getDownloadURL(fileRef) }
+      const transaction = { merchant: form.merchant.trim(), category: form.category, date: new Date(`${form.date}T12:00:00`).toLocaleDateString('pt-BR'), initials: form.merchant.trim().slice(0, 2).toUpperCase(), type: form.category === 'Alimentação' ? 'food' : form.category === 'Moradia' ? 'home' : form.category === 'Transporte' ? 'transport' : 'food', value: `− R$ ${amount.toFixed(2).replace('.', ',')}`, amount, ...(invoiceUrl ? { invoiceUrl, invoiceName: invoice.name } : {}) }
+      await setDoc(transactionRef, transaction); onSaved({ id: transactionRef.id, ...transaction })
+      setForm({ merchant: '', value: '', category: 'Alimentação', date: new Date().toISOString().slice(0, 10) }); setInvoice(null); event.target.reset()
+    } catch (saveError) { console.error('Não foi possível salvar o gasto.', saveError); setError('Não foi possível salvar. Verifique as regras do Firestore e do Storage.') } finally { setSaving(false) }
+  }
+  return <form className={styles.expenseForm} onSubmit={submit}><div className={styles.formGrid}><label>Estabelecimento<input value={form.merchant} onChange={event => setForm(current => ({ ...current, merchant: event.target.value }))} placeholder="Ex.: Mercado" required /></label><label>Valor<input value={form.value} onChange={event => setForm(current => ({ ...current, value: event.target.value }))} inputMode="decimal" placeholder="0,00" required /></label><label>Data<input type="date" value={form.date} onChange={event => setForm(current => ({ ...current, date: event.target.value }))} required /></label><label>Categoria<select value={form.category} onChange={event => setForm(current => ({ ...current, category: event.target.value }))}><option>Alimentação</option><option>Moradia</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Outros</option></select></label></div><div className={styles.formActions}><label className={styles.invoiceInput}>Nota fiscal (opcional)<input type="file" accept="image/jpeg,image/png,application/pdf" onChange={event => setInvoice(event.target.files?.[0] || null)} /></label><button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Adicionar gasto'}</button></div>{invoice && <small className={styles.fileHint}>Arquivo: {invoice.name}</small>}{error && <div className={styles.authError} role="alert">{error}</div>}</form>
+}
 export function TransactionList({ transactions }) {
   return <article className={`${styles.card} ${styles.panel}`}><div className={styles.panelHead}><h2 className={styles.panelTitle}>Transações recentes</h2><button className={styles.select}>Ver todas →</button></div>{transactions.map(transaction => <TransactionItem key={`${transaction.merchant}-${transaction.date}`} transaction={transaction} />)}</article>
 }
@@ -167,7 +190,7 @@ export default function Dashboard({ userId }) {
     return () => { cancelled = true }
   }, [userId])
 
-  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{data.stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel/><div className={styles.lower}><TransactionList transactions={data.transactions}/><CategoryPanel/></div></section><aside className={styles.side}><SubscriptionRadar subscriptions={data.subscriptions}/><InsightCard insight={data.insight}/></aside></> : activeItem === 'Meus gastos' ? <section><div className={styles.pageIntro}><h2>Meus gastos</h2><p>Consulte as transações carregadas da sua conta.</p></div><TransactionList transactions={data.transactions}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe suas próximas cobranças.</p></div><SubscriptionRadar subscriptions={data.subscriptions}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data} userId={userId}/></section>
+  const pageContent = activeItem === 'Visão geral' ? <><section><div className={styles.dataStatus} aria-live="polite">{dataSource === 'firestore' ? 'Dados sincronizados' : dataSource === 'fallback' ? 'Exibindo dados de demonstração' : 'Carregando dados…'}</div><div className={styles.stats}>{data.stats.map(stat => <StatCard key={stat.label} {...stat}/>)}</div><ChartPanel/><div className={styles.lower}><TransactionList transactions={data.transactions}/><CategoryPanel/></div></section><aside className={styles.side}><SubscriptionRadar subscriptions={data.subscriptions}/><InsightCard insight={data.insight}/></aside></> : activeItem === 'Meus gastos' ? <section><div className={styles.pageIntro}><h2>Meus gastos</h2><p>Consulte as transações carregadas da sua conta.</p></div><ExpenseForm userId={userId} onSaved={transaction => setData(current => ({ ...current, transactions: [transaction, ...current.transactions] }))}/><TransactionList transactions={data.transactions}/></section> : activeItem === 'Assinaturas' ? <section><div className={styles.pageIntro}><h2>Assinaturas</h2><p>Acompanhe suas próximas cobranças.</p></div><SubscriptionRadar subscriptions={data.subscriptions}/></section> : <section><div className={styles.pageIntro}><h2>Assistente IA</h2><p>Faça perguntas sobre seus dados financeiros.</p></div><AssistantPanel data={data} userId={userId}/></section>
 
   return <div className={styles.app}><Sidebar activeItem={activeItem} onNavigate={setActiveItem}/><main><Topbar user={data.user}/><div className={styles.content}>{pageContent}</div></main></div>
 }
