@@ -16,7 +16,6 @@
     "vite": "latest"
   },
   "devDependencies": {
-    "firebase-tools": "^15.27.0",
-    "puppeteer-core": "^25.8.0"
+    "firebase-tools": "^15.27.0"
   }
 }
