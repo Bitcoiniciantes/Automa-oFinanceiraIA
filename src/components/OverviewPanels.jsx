@@ -20,21 +20,9 @@ export function StatCard({ label, value, change, icon, tone, down }) {
 
 export function ChartPanel({ transactions }) {
   const series = useMemo(() => buildChartSeries(transactions), [transactions])
-  const hasData = series.some((point) => point.despesas > 0 || point.receitas > 0 || point.saldo !== 0)
-  const width = 760
-  const height = 240
-  const yTop = 18
-  const yBottom = 198
-  const values = series.flatMap((point) => [point.saldo, point.despesas, point.receitas])
-  const max = Math.max(1, ...values)
-  const min = Math.min(0, ...values)
-  const range = max - min || 1
-  const x = (index) => (series.length === 1 ? width / 2 : (index / (series.length - 1)) * width)
-  const y = (value) => yBottom - ((value - min) / range) * (yBottom - yTop)
-  const yZero = y(0)
-  const toPath = (getValue) =>
-    series.map((point, index) => `${index === 0 ? 'M' : 'L'}${x(index).toFixed(1)} ${y(getValue(point)).toFixed(1)}`).join(' ')
-  const last = series.length - 1
+  const hasData = series.some((point) => point.despesas > 0 || point.receitas > 0)
+  const max = Math.max(1, ...series.flatMap((point) => [point.despesas, point.receitas]))
+  const currentKey = monthKey(new Date())
   return (
     <article className={`${styles.card} ${styles.panel}`}>
       <div className={styles.panelHead}>
@@ -45,35 +33,33 @@ export function ChartPanel({ transactions }) {
       </div>
       <div className={styles.chart}>
         {hasData ? (
-          <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Fluxo financeiro dos últimos 6 meses">
-            <g stroke="#eef0f5" strokeWidth="1">
-              <path d={`M0 ${yTop}H${width}M0 ${yBottom}H${width}`} />
-            </g>
-            <path d={`M0 ${yZero}H${width}`} stroke="#d9dbea" strokeWidth="1" strokeDasharray="4 4" />
-            <path d={toPath((point) => point.despesas)} fill="none" stroke="#f2a94a" strokeWidth="2.5" />
-            <path d={toPath((point) => point.saldo)} fill="none" stroke="#635bff" strokeWidth="3" />
-            <circle cx={x(last).toFixed(1)} cy={y(series[last].saldo).toFixed(1)} r="4" fill="#635bff" />
-            <g fill="#8c93a8" fontSize="11">
-              {series.map((point, index) => (
-                <text
-                  key={`${point.key}-${index}`}
-                  x={index === 0 ? 0 : index === last ? width - 4 : x(index).toFixed(1)}
-                  y={height - 10}
-                  textAnchor={index === 0 ? 'start' : index === last ? 'end' : 'middle'}
-                >
+          <div className={styles.barChart} role="img" aria-label="Despesas e receitas dos últimos 6 meses">
+            {series.map((point) => (
+              <div className={styles.barGroup} key={point.key}>
+                <div className={styles.bars}>
+                  <div className={styles.barWrap}>
+                    <div className={`${styles.bar} ${styles.barDespesa}`} style={{ height: `${(point.despesas / max) * 100}%` }} />
+                    <span className={styles.barVal}>{formatBRLNoDecimals(point.despesas)}</span>
+                  </div>
+                  <div className={styles.barWrap}>
+                    <div className={`${styles.bar} ${styles.barReceita}`} style={{ height: `${(point.receitas / max) * 100}%` }} />
+                    <span className={styles.barVal}>{formatBRLNoDecimals(point.receitas)}</span>
+                  </div>
+                </div>
+                <span className={styles.barLabel}>
                   {point.label}
-                  {point.key === monthKey(new Date()) ? ' · atual' : ''}
-                </text>
-              ))}
-            </g>
-          </svg>
+                  {point.key === currentKey ? ' · atual' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className={styles.chartEmpty}>Sem movimentações nos últimos 6 meses.</div>
         )}
       </div>
       <div className={styles.legend}>
-        <span className={styles.legendBlue}>Saldo acumulado</span>
-        <span className={styles.legendOrange}>Despesas</span>
+        <span className={styles.legendRed}>Despesas</span>
+        <span className={styles.legendGreen}>Receitas</span>
       </div>
     </article>
   )
