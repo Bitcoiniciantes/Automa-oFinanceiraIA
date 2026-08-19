@@ -11,6 +11,7 @@ import { StatCard, ChartPanel, MonthlyComparePanel, CategoryPanel, InsightCard }
 import { ExpenseForm, TransactionList } from './components/Transactions'
 import { SubscriptionRadar } from './components/Subscriptions'
 import { AssistantPanel } from './components/Assistant'
+import { MonthlyReport } from './components/Report'
 import { accountUser, buildInsight, buildStats } from './lib/finance'
 
 const userCollection = 'usuarios'
@@ -18,6 +19,7 @@ const PAGE_ROUTES = {
   '/': 'Visão geral',
   '/lancamentos': 'Lançamentos',
   '/assinaturas': 'Assinaturas',
+  '/relatorio': 'Relatório',
   '/assistente': 'Assistente IA',
 }
 const ROUTES_BY_PAGE = Object.fromEntries(Object.entries(PAGE_ROUTES).map(([path, label]) => [label, path]))
@@ -165,6 +167,10 @@ export default function Dashboard({ userId }) {
           onChanged={(change) => applyChange('subscriptions', change)}
         />
       </section>
+    ) : activeItem === 'Relatório' ? (
+      <div className={styles.reportPageWrap}>
+        <MonthlyReport transactions={data.transactions} user={data.user} />
+      </div>
     ) : (
       <section>
         <div className={styles.pageIntro}>

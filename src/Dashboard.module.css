@@ -1539,3 +1539,235 @@ main {
     padding: 16px;
   }
 }
+
+.reportPageWrap {
+  grid-column: 1 / -1;
+}
+.reportToolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.reportTitle {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  margin: 0 0 6px;
+}
+.reportSub {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+.reportActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.reportMonthBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+.reportMonthBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.reportMonth {
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 150px;
+  text-align: center;
+}
+.reportDownload {
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+}
+.reportSheet {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 34px 40px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.reportSheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 22px;
+}
+.reportSheetMeta {
+  text-align: right;
+}
+.reportSheetMeta b {
+  display: block;
+  font-size: 14px;
+}
+.reportSheetMeta small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.reportSummary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.reportStat {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.reportStat span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.reportStat b {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+.reportGreen {
+  color: var(--green) !important;
+}
+.reportRed {
+  color: var(--red) !important;
+}
+.reportSectionTitle {
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  margin: 22px 0 12px;
+}
+.reportCategories {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reportCategoryRow {
+  display: grid;
+  grid-template-columns: 150px 1fr 90px;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.reportCategoryInfo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.reportCategoryInfo b {
+  color: var(--muted);
+}
+.reportBarTrack {
+  background: #eef0f5;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.reportBar {
+  height: 100%;
+  border-radius: 999px;
+}
+.reportCategoryValue {
+  text-align: right;
+  font-weight: 700;
+}
+.reportTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.reportTable th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.reportTable td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.reportTable td:last-child,
+.reportTable th:last-child {
+  text-align: right;
+}
+.reportEmpty {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 8px 0;
+}
+.reportSheetFoot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 14px;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body {
+    background: #fff !important;
+  }
+  .sidebar,
+  .topbar,
+  .searchBar,
+  .pageIntro,
+  .reportToolbar,
+  .noPrint,
+  .footer,
+  .mobileNavOverlay {
+    display: none !important;
+  }
+  .appBody {
+    display: block;
+  }
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .content {
+    display: block !important;
+  }
+  .reportPageWrap {
+    grid-column: auto;
+  }
+  .reportSheet {
+    box-shadow: none;
+    border: 0;
+    max-width: 100%;
+    padding: 0;
+    border-radius: 0;
+  }
+  .reportStat,
+  .reportCategoryRow {
+    break-inside: avoid;
+  }
+}
