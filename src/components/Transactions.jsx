@@ -233,7 +233,7 @@ export function ExpenseForm({ userId, transactions, onSaved }) {
     : invoice && !pendingInvoice
       ? 'Ler nota fiscal'
       : pendingInvoice
-        ? 'Salvar gasto'
+        ? 'Salvar despesas'
         : 'Adicionar'
   return (
     <form className={styles.expenseForm} onSubmit={submit} ref={formRef}>
