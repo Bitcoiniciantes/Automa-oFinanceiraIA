@@ -22,7 +22,7 @@ export function VerifyEmail({ email, onRefresh }) {
     try {
       await sendEmailVerification(auth.currentUser)
       setStatus('E-mail de verificação enviado! Confira sua caixa de entrada e também a pasta de spam.')
-      setCooldown(30)
+      setCooldown(60)
     } catch (error) {
       console.error('Falha ao reenviar a verificação de e-mail.', error.code)
       const messages = {
