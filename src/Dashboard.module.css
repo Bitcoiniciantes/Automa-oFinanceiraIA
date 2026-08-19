@@ -1052,6 +1052,15 @@ main {
   font-size: 12px;
 }
 
+.verifyNotice {
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--green-soft);
+  color: #187846;
+  font-size: 12px;
+}
+
 .signOut {
   background: transparent;
   color: var(--muted);

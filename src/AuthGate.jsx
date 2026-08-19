@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, onIdTokenChanged, sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from './firebase'
 import Dashboard from './Dashboard'
+import { VerifyEmail } from './components/VerifyEmail'
 import styles from './Dashboard.module.css'
 
 export default function AuthGate() {
@@ -12,7 +13,19 @@ export default function AuthGate() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => onAuthStateChanged(auth, setUser), [])
+  useEffect(() => onIdTokenChanged(auth, setUser), [])
+
+  if (user && !user.emailVerified) {
+    return (
+      <VerifyEmail
+        email={user.email}
+        onRefresh={async () => {
+          if (auth.currentUser) await auth.currentUser.reload()
+          setUser({ ...auth.currentUser })
+        }}
+      />
+    )
+  }
 
   if (user) return <Dashboard userId={user.uid} />
 
@@ -21,8 +34,16 @@ export default function AuthGate() {
     setLoading(true)
     setError('')
     try {
-      if (registering) await createUserWithEmailAndPassword(auth, email, password)
-      else await signInWithEmailAndPassword(auth, email, password)
+      if (registering) {
+        const credential = await createUserWithEmailAndPassword(auth, email, password)
+        try {
+          await sendEmailVerification(credential.user)
+        } catch (verifyError) {
+          console.warn('Não foi possível enviar o e-mail de verificação.', verifyError.code)
+        }
+      } else {
+        await signInWithEmailAndPassword(auth, email, password)
+      }
     } catch (authError) {
       console.error('Falha na autenticação:', authError.code, authError.message)
       const messages = {
