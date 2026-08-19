@@ -3,6 +3,7 @@ import { createUserWithEmailAndPassword, onIdTokenChanged, sendEmailVerification
 import { auth } from './firebase'
 import Dashboard from './Dashboard'
 import { VerifyEmail } from './components/VerifyEmail'
+import { VisitCounter } from './components/VisitCounter'
 import styles from './Dashboard.module.css'
 
 export default function AuthGate() {
@@ -164,7 +165,9 @@ export default function AuthGate() {
         </form>
       </main>
 
-      <footer className={styles.landingFooter}>FinAI — o radar para as suas finanças</footer>
+      <footer className={styles.landingFooter}>
+        FinAI — o radar para as suas finanças · <VisitCounter />
+      </footer>
     </div>
   )
 }
