@@ -7,12 +7,12 @@ import { auth, db } from './firebase'
 import styles from './Dashboard.module.css'
 import { Sidebar, Topbar } from './components/Navigation'
 import { NAV_ITEMS } from './components/navItems.jsx'
-import { StatCard, ChartPanel, MonthlyComparePanel, CategoryPanel, InsightCard } from './components/OverviewPanels'
+import { StatCard, ChartPanel, CategoryPanel, InsightCard } from './components/OverviewPanels'
 import { ExpenseForm, TransactionList } from './components/Transactions'
 import { SubscriptionRadar } from './components/Subscriptions'
 import { AssistantPanel } from './components/Assistant'
 import { MonthlyReport } from './components/Report'
-import { accountUser, buildInsight, buildStats } from './lib/finance'
+import { accountUser, buildInsight, buildStats, parseTransactionDate } from './lib/finance'
 
 const userCollection = 'usuarios'
 const PAGE_ROUTES = {
@@ -107,6 +107,11 @@ export default function Dashboard({ userId }) {
     )
   }, [data.transactions, searchQuery])
 
+  const recentTransactions = useMemo(
+    () => [...data.transactions].sort((a, b) => parseTransactionDate(b.date) - parseTransactionDate(a.date)).slice(0, 3),
+    [data.transactions],
+  )
+
   const activeItem = PAGE_ROUTES[location.pathname] || 'Visão geral'
   const status = loading ? 'Carregando dados…' : 'Dados sincronizados'
 
@@ -123,11 +128,10 @@ export default function Dashboard({ userId }) {
             ))}
           </div>
           <ChartPanel transactions={data.transactions} />
-          <MonthlyComparePanel transactions={data.transactions} />
           <div className={styles.lower}>
             <TransactionList
               userId={userId}
-              transactions={filteredTransactions}
+              transactions={recentTransactions}
               onChanged={(change) => applyChange('transactions', change)}
             />
             <CategoryPanel transactions={data.transactions} />

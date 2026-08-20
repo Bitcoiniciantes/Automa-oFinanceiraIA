@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import PropTypes from 'prop-types'
 import styles from '../Dashboard.module.css'
-import { buildChartSeries, buildCategories, buildMonthlySummary, CATEGORY_COLORS, formatBRLNoDecimals, monthKey } from '../lib/finance'
+import { buildChartSeries, buildCategories, CATEGORY_COLORS, formatBRLNoDecimals, monthKey } from '../lib/finance'
 
 export function StatCard({ label, value, change, icon, tone, down }) {
   return (
@@ -61,56 +61,6 @@ export function ChartPanel({ transactions }) {
         <span className={styles.legendRed}>Despesas</span>
         <span className={styles.legendGreen}>Receitas</span>
       </div>
-    </article>
-  )
-}
-
-export function MonthlyComparePanel({ transactions }) {
-  const months = useMemo(() => buildMonthlySummary(transactions), [transactions])
-  const withData = months.filter((month) => month.lancamentos > 0).reverse()
-  const maxGasto = Math.max(1, ...withData.map((month) => month.gastos))
-  const current = months[months.length - 1]
-  const hasData = withData.length > 0
-  return (
-    <article className={`${styles.card} ${styles.panel}`}>
-      <div className={styles.panelHead}>
-        <h2 className={styles.panelTitle}>Comparativo mensal</h2>
-        <span className={styles.panelNote}>
-          {hasData
-            ? `Este mês: ${current.lancamentos} lançamento${current.lancamentos === 1 ? '' : 's'} · ${formatBRLNoDecimals(current.gastos)} em gastos`
-            : 'Sem lançamentos nos últimos 6 meses'}
-        </span>
-      </div>
-      {hasData && (
-        <div className={styles.monthRows}>
-          {withData.map((month) => {
-            const isCurrent = month.key === monthKey(new Date())
-            const yearLabel = Number(month.key.slice(0, 4)) !== new Date().getFullYear() ? ` ${month.key.slice(0, 4)}` : ''
-            return (
-              <div key={month.key} className={`${styles.monthRow} ${isCurrent ? styles.monthCurrent : ''}`}>
-                <span className={styles.monthLabel}>{isCurrent ? 'Este mês' : `${month.label}${yearLabel}`}</span>
-                <span className={styles.monthTrack}>
-                  <i style={{ width: `${(month.gastos / maxGasto) * 100}%` }} />
-                </span>
-                <span className={styles.monthValue}>{formatBRLNoDecimals(month.gastos)}</span>
-                <span className={styles.monthCount}>{month.lancamentos}</span>
-                <div className={styles.monthDetail}>
-                  {month.itens.map((item) => (
-                    <div className={styles.monthItem} key={item.groupKey}>
-                      <span>
-                        {item.merchant}
-                        {item.count > 1 && <em className={styles.monthCountBadge}>×{item.count}</em>}
-                      </span>
-                      <small>{item.date.toLocaleDateString('pt-BR')}</small>
-                      <b>{item.value}</b>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
     </article>
   )
 }
@@ -191,10 +141,6 @@ StatCard.propTypes = {
 }
 
 ChartPanel.propTypes = {
-  transactions: PropTypes.array.isRequired,
-}
-
-MonthlyComparePanel.propTypes = {
   transactions: PropTypes.array.isRequired,
 }
 
