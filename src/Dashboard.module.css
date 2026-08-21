@@ -360,7 +360,7 @@ main {
   font-size: 12px;
 }
 .chart {
-  height: 216px;
+  height: 121px;
   position: relative;
 }
 .chart svg {
@@ -753,7 +753,7 @@ main {
     padding: 17px;
   }
   .chart {
-    height: 185px;
+    height: 90px;
   }
 }
 
