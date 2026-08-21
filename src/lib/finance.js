@@ -1,5 +1,5 @@
 export const MONTH_LABELS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-export const CATEGORIES = ['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Educação', 'Outros']
+export const CATEGORIES = ['Alimentação', 'Gastronomia', 'Moradia', 'Transporte', 'Saúde', 'Educação', 'Outros']
 export const RECEITA_CATEGORIES = ['Salário', 'Aluguel', 'Pró-Labore', 'Renda passiva', 'Juros aplicações', 'Créditos diversos', 'Outros']
 
 export const CATEGORY_KEYWORDS = [
@@ -26,7 +26,36 @@ export const CATEGORY_KEYWORDS = [
       'suco',
       'feira',
       'quitanda',
+    ],
+  ],
+  [
+    'Gastronomia',
+    [
       'gastronomia',
+      'bar',
+      'bares',
+      'pizzaria',
+      'pizza',
+      'vinho',
+      'vinhos',
+      'doce',
+      'doces',
+      'confeitaria',
+      'padaria',
+      'cerveja',
+      'drink',
+      'drinks',
+      'cocktail',
+      'churrascaria',
+      'restaurante',
+      'lanchonete',
+      'hamburguer',
+      'burger',
+      'sushi',
+      'japanese',
+      'chinese',
+      'italiano',
+      'arabe',
     ],
   ],
   [
@@ -92,8 +121,8 @@ export const CATEGORY_KEYWORDS = [
   ['Educação', ['escola', 'faculdade', 'curso', 'universidade', 'idiomas', 'ingles', 'colegio', 'livraria', 'mente', 'jovem', 'kumon']],
 ]
 
-export const CATEGORY_TONES = { Moradia: 'brand', Alimentação: 'orange', Transporte: 'teal' }
-export const CATEGORY_COLORS = { brand: '#635bff', orange: '#f2a94a', teal: '#57b9ad', gray: '#e7e8f2' }
+export const CATEGORY_TONES = { Moradia: 'brand', Alimentação: 'orange', Gastronomia: 'pink', Transporte: 'teal' }
+export const CATEGORY_COLORS = { brand: '#635bff', orange: '#f2a94a', pink: '#e84393', teal: '#57b9ad', gray: '#e7e8f2' }
 
 export function inferCategory(merchant) {
   const text = String(merchant || '')
@@ -197,6 +226,7 @@ export function formatBRLNoDecimals(number) {
 export function categoryType(category) {
   if (category === 'Moradia') return 'home'
   if (category === 'Transporte') return 'transport'
+  if (category === 'Gastronomia') return 'food'
   return 'food'
 }
 

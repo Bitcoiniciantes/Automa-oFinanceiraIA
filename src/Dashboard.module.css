@@ -605,6 +605,9 @@ main {
 .cat i.orange {
   background: #f2a94a;
 }
+.cat i.pink {
+  background: #e84393;
+}
 .cat i.teal {
   background: #57b9ad;
 }
