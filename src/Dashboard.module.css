@@ -555,16 +555,17 @@ main {
   gap: 22px;
 }
 .donut {
-  width: 139px;
-  height: 139px;
+  width: 167px;
+  height: 167px;
   border-radius: 50%;
   background: conic-gradient(var(--brand) 0 39%, #f2a94a 39% 62%, #57b9ad 62% 77%, #e7e8f2 77%);
   position: relative;
+  flex-shrink: 0;
 }
 .donut:after {
   content: '';
   position: absolute;
-  inset: 28px;
+  inset: 34px;
   border-radius: 50%;
   background: #fff;
 }
@@ -575,19 +576,20 @@ main {
   display: grid;
   place-items: center;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 .donutCenter b {
   display: block;
   color: var(--ink);
-  font-size: 18px;
+  font-size: 20px;
 }
 .catList {
   display: flex;
   flex-direction: column;
   gap: 13px;
   flex: 1;
+  margin-left: auto;
 }
 .cat {
   display: flex;
