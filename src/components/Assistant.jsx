@@ -56,6 +56,14 @@ export function AssistantPanel({ data, stats, userId }) {
   const [loading, setLoading] = useState(false)
   const [historyLoaded, setHistoryLoaded] = useState(false)
 
+  const suggestions = [
+    'Quais são meus maiores gastos recorrentes?',
+    'Como está a tendência dos últimos meses?',
+    'Onde posso economizar?',
+    'Compare o mês atual com o anterior',
+    'Quais categorias estão acima da média?',
+  ]
+
   useEffect(() => {
     getDoc(doc(db, userCollection, userId, 'assistente', 'conversa'))
       .then((snapshot) => {
@@ -153,6 +161,21 @@ export function AssistantPanel({ data, stats, userId }) {
           Enviar
         </button>
       </form>
+      {messages.length <= 1 && (
+        <div className={styles.chatSuggestions}>
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              className={styles.chatSuggestion}
+              onClick={() => { setPrompt(suggestion) }}
+              disabled={loading}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
       <div className={styles.chatMessages}>
         {loading && <div className={`${styles.chatMessage} ${styles.model}`}>Analisando seus dados…</div>}
         {messages

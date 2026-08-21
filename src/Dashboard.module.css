@@ -1171,6 +1171,33 @@ main {
 .assistantPanel {
   max-width: 960px;
 }
+.chatSuggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 0;
+}
+.chatSuggestion {
+  background: #f1f0ff;
+  color: var(--brand);
+  border: 1px solid rgba(99, 91, 255, 0.2);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.chatSuggestion:hover {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.chatSuggestion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .chatMessages {
   display: flex;
   flex-direction: column;
