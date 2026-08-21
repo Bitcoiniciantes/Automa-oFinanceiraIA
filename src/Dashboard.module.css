@@ -1728,6 +1728,9 @@ main {
   }
   body {
     background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
   .sidebar,
   .topbar,
@@ -1763,6 +1766,16 @@ main {
   .reportStat,
   .reportCategoryRow {
     break-inside: avoid;
+  }
+  .reportBarTrack,
+  .reportBar,
+  .cat i,
+  .reportStat,
+  .reportGreen,
+  .reportRed {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
 
