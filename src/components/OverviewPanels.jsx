@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
 import styles from '../Dashboard.module.css'
 import { buildChartSeries, buildCategories, CATEGORY_COLORS, formatBRLNoDecimals, monthKey } from '../lib/finance'
@@ -19,7 +19,8 @@ export function StatCard({ label, value, change, icon, tone, down }) {
 }
 
 export function ChartPanel({ transactions }) {
-  const series = useMemo(() => buildChartSeries(transactions), [transactions])
+  const [monthCount, setMonthCount] = useState(12)
+  const series = useMemo(() => buildChartSeries(transactions, monthCount), [transactions, monthCount])
   const hasData = series.some((point) => point.despesas > 0 || point.receitas > 0)
   const max = Math.max(1, ...series.flatMap((point) => [point.despesas, point.receitas]))
   const currentKey = monthKey(new Date())
@@ -27,13 +28,14 @@ export function ChartPanel({ transactions }) {
     <article className={`${styles.card} ${styles.panel}`}>
       <div className={styles.panelHead}>
         <h2 className={styles.panelTitle}>Fluxo financeiro</h2>
-        <select className={styles.select} defaultValue="6">
+        <select className={styles.select} value={monthCount} onChange={(e) => setMonthCount(Number(e.target.value))}>
           <option value="6">Últimos 6 meses</option>
+          <option value="12">Últimos 12 meses</option>
         </select>
       </div>
       <div className={styles.chart}>
         {hasData ? (
-          <div className={styles.barChart} role="img" aria-label="Despesas e receitas dos últimos 6 meses">
+          <div className={styles.barChart} role="img" aria-label={`Despesas e receitas dos últimos ${monthCount} meses`}>
             {series.map((point) => (
               <div className={styles.barGroup} key={point.key}>
                 <div className={styles.bars}>
@@ -54,7 +56,7 @@ export function ChartPanel({ transactions }) {
             ))}
           </div>
         ) : (
-          <div className={styles.chartEmpty}>Sem movimentações nos últimos 6 meses.</div>
+          <div className={styles.chartEmpty}>Sem movimentações nos últimos {monthCount} meses.</div>
         )}
       </div>
       <div className={styles.legend}>
@@ -66,7 +68,8 @@ export function ChartPanel({ transactions }) {
 }
 
 export function CategoryPanel({ transactions }) {
-  const { list, total } = useMemo(() => buildCategories(transactions), [transactions])
+  const [period, setPeriod] = useState('month')
+  const { list, total } = useMemo(() => buildCategories(transactions, period), [transactions, period])
   let gradient = ''
   if (total > 0) {
     let acc = 0
@@ -86,8 +89,11 @@ export function CategoryPanel({ transactions }) {
     <article className={`${styles.card} ${styles.panel}`}>
       <div className={styles.panelHead}>
         <h2 className={styles.panelTitle}>Gastos por categoria</h2>
-        <select className={styles.select} defaultValue="month">
+        <select className={styles.select} value={period} onChange={(e) => setPeriod(e.target.value)}>
           <option value="month">Este mês</option>
+          <option value="prevMonth">Mês anterior</option>
+          <option value="6months">6 meses</option>
+          <option value="12months">12 meses</option>
         </select>
       </div>
       {list.length === 0 ? (

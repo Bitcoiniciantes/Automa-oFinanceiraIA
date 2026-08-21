@@ -9,6 +9,7 @@ import { Sidebar, Topbar } from './components/Navigation'
 import { NAV_ITEMS } from './components/navItems.jsx'
 import { StatCard, ChartPanel, CategoryPanel, InsightCard } from './components/OverviewPanels'
 import { ExpenseForm, TransactionList } from './components/Transactions'
+import { BulkImport } from './components/BulkImport'
 import { SubscriptionRadar } from './components/Subscriptions'
 import { AssistantPanel } from './components/Assistant'
 import { MonthlyReport } from './components/Report'
@@ -157,6 +158,10 @@ export default function Dashboard({ userId }) {
           transactions={data.transactions}
           onSaved={(transaction) => applyChange('transactions', { added: transaction })}
         />
+        <BulkImport
+          userId={userId}
+          onSaved={(transaction) => applyChange('transactions', { added: transaction })}
+        />
         <TransactionList userId={userId} transactions={filteredTransactions} onChanged={(change) => applyChange('transactions', change)} />
       </section>
     ) : activeItem === 'Assinaturas' ? (
@@ -211,7 +216,7 @@ export default function Dashboard({ userId }) {
         <span>
           <b>FinAI</b> · Automação Financeira
         </span>
-        <span>© {new Date().getFullYear()} FinAI — o radar para as suas finanças</span>
+        <span>© 2026 FinAI - JH o radar para as suas finanças</span>
       </footer>
       {mobileMenuOpen && (
         <div className={styles.mobileNavOverlay} onClick={() => setMobileMenuOpen(false)}>

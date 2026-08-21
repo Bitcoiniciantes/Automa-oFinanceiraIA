@@ -1760,3 +1760,163 @@ main {
     break-inside: avoid;
   }
 }
+
+/* Bulk Import */
+.bulkImport {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.bulkImportHeader {
+  margin-bottom: 20px;
+}
+.bulkImportHeader h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.bulkImportHeader p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.bulkUploadArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+.bulkUploadArea small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.bulkFileInput {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.bulkFileInput:hover {
+  opacity: 0.88;
+}
+.bulkFileInput input {
+  display: none;
+}
+.bulkFileInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--brand-soft);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.bulkResetBtn {
+  background: transparent;
+  color: var(--brand);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.bulkResetBtn:hover {
+  background: var(--brand);
+  color: #fff;
+}
+.bulkMapping {
+  margin-bottom: 20px;
+}
+.bulkMapping h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.bulkMappingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.bulkMappingGrid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.bulkMappingGrid select {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fff;
+  color: var(--ink);
+}
+.bulkPreview {
+  margin-bottom: 20px;
+}
+.bulkPreview h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.bulkTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.bulkTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.bulkTable th,
+.bulkTable td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.bulkTable th {
+  background: var(--bg);
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.bulkTable tbody tr:hover {
+  background: var(--brand-soft);
+}
+.bulkDone {
+  text-align: center;
+  padding: 32px;
+}
+.bulkDone p {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--green);
+}
+.bulkDone button {
+  padding: 10px 20px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+}

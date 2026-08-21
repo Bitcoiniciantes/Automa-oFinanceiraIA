@@ -299,10 +299,10 @@ export function buildStats(transactions) {
   ]
 }
 
-export function buildChartSeries(transactions) {
+export function buildChartSeries(transactions, monthCount = 12) {
   const now = new Date()
   const months = []
-  for (let i = 5; i >= 0; i -= 1) {
+  for (let i = monthCount - 1; i >= 0; i -= 1) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
     months.push({ key: monthKey(date), label: MONTH_LABELS[date.getMonth()] })
   }
@@ -322,10 +322,26 @@ export function buildChartSeries(transactions) {
   })
 }
 
-export function buildCategories(transactions) {
+export function buildCategories(transactions, period = 'month') {
+  const now = new Date()
+  let startDate = null
+  let endDate = null
+  if (period === 'month') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+  } else if (period === 'prevMonth') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    endDate = new Date(now.getFullYear(), now.getMonth(), 1)
+  } else if (period === '6months') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+  } else if (period === '12months') {
+    startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+  }
   const totals = {}
   transactions.forEach((transaction) => {
     if (!isExpense(transaction)) return
+    const txDate = parseTransactionDate(transaction.date)
+    if (startDate && txDate < startDate) return
+    if (endDate && txDate >= endDate) return
     const category = transaction.category || 'Outros'
     totals[category] = (totals[category] || 0) + Math.abs(parseAmount(transaction))
   })

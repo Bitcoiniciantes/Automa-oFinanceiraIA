@@ -80,7 +80,10 @@ describe('buildStats', () => {
 })
 
 describe('buildChartSeries', () => {
-  it('gera 6 pontos sempre', () => {
-    expect(buildChartSeries([])).toHaveLength(6)
+  it('gera 12 pontos por padrão', () => {
+    expect(buildChartSeries([])).toHaveLength(12)
+  })
+  it('gera 6 pontos quando solicitado', () => {
+    expect(buildChartSeries([], 6)).toHaveLength(6)
   })
 })

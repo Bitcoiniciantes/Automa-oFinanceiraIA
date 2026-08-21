@@ -241,7 +241,7 @@ export function ExpenseForm({ userId, transactions, onSaved }) {
         <label className={`${styles.typeField} ${form.type === 'gasto' ? styles.typeExpense : styles.typeIncome}`}>
           Tipo
           <select value={form.type} onChange={(event) => updateField('type', event.target.value)}>
-            <option value="gasto">Gasto</option>
+            <option value="gasto">Despesa</option>
             <option value="receita">Receita</option>
           </select>
         </label>
@@ -422,7 +422,7 @@ export function TransactionList({ userId, transactions, onChanged }) {
                   }
                   aria-label="Tipo"
                 >
-                  <option value="gasto">Gasto</option>
+                  <option value="gasto">Despesa</option>
                   <option value="receita">Receita</option>
                 </select>
                 <select
