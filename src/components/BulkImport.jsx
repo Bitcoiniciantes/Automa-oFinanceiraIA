@@ -1,14 +1,16 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import * as XLSX from 'xlsx'
-import { collection, writeBatch, doc } from 'firebase/firestore'
+import { collection, getDocs, writeBatch, doc } from 'firebase/firestore'
 import { db } from '../firebase'
 import styles from '../Dashboard.module.css'
 import {
   CATEGORIES,
   RECEITA_CATEGORIES,
   categoryType,
+  findDuplicate,
   inferCategory,
+  parseAmount,
   todayLocalISO,
   toISO,
 } from '../lib/finance'
@@ -116,6 +118,17 @@ export function BulkImport({ userId, onSaved }) {
   const [success, setSuccess] = useState('')
   const [step, setStep] = useState('upload')
   const [confirmData, setConfirmData] = useState([])
+  const [existingTransactions, setExistingTransactions] = useState([])
+  const [duplicates, setDuplicates] = useState([])
+  const [skipDuplicates, setSkipDuplicates] = useState(true)
+
+  useEffect(() => {
+    if (!userId) return
+    const colRef = collection(db, 'usuarios', userId, 'transacoes')
+    getDocs(colRef).then((snapshot) => {
+      setExistingTransactions(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
+    }).catch(() => {})
+  }, [userId])
 
   function buildTransactions() {
     if (!mapping.merchant || !mapping.value) return []
@@ -181,22 +194,47 @@ export function BulkImport({ userId, onSaved }) {
     setMapping((current) => ({ ...current, [field]: value }))
   }
 
+  function checkDuplicates(transactions) {
+    const found = []
+    transactions.forEach((t, index) => {
+      const match = findDuplicate(existingTransactions, {
+        merchant: t.merchant,
+        amount: Math.abs(parseAmount(t)),
+        date: t.date,
+      })
+      if (match) found.push({ index, transaction: t, duplicate: match })
+    })
+    return found
+  }
+
   async function handleImport() {
     if (confirmData.length === 0) return
     setSaving(true)
     setError('')
     setSuccess('')
     try {
+      const toImport = skipDuplicates
+        ? confirmData.filter((_, i) => !duplicates.some((d) => d.index === i))
+        : confirmData
+      if (toImport.length === 0) {
+        setError('Todas as transações são duplicatas. Nada foi importado.')
+        setSaving(false)
+        return
+      }
       const batch = writeBatch(db)
       const colRef = collection(db, userCollection, userId, 'transacoes')
       const saved = []
-      for (const transaction of confirmData) {
+      for (const transaction of toImport) {
         const ref = doc(colRef)
         batch.set(ref, transaction)
         saved.push({ id: ref.id, ...transaction })
       }
       await batch.commit()
-      setSuccess(`${saved.length} transações importadas com sucesso!`)
+      const skipped = confirmData.length - toImport.length
+      const msg = skipped > 0
+        ? `${saved.length} transações importadas (${skipped} duplicatas ignoradas).`
+        : `${saved.length} transações importadas com sucesso!`
+      setSuccess(msg)
       setStep('done')
       saved.forEach((t) => onSaved(t))
     } catch (importError) {
@@ -215,6 +253,8 @@ export function BulkImport({ userId, onSaved }) {
     setError('')
     setSuccess('')
     setConfirmData([])
+    setDuplicates([])
+    setSkipDuplicates(true)
     setStep('upload')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -348,6 +388,8 @@ export function BulkImport({ userId, onSaved }) {
                 return
               }
               setError('')
+              const foundDuplicates = checkDuplicates(txs)
+              setDuplicates(foundDuplicates)
               setConfirmData(txs)
               setStep('confirm')
             }} disabled={saving || !mapping.merchant || !mapping.value || mapping.merchant === mapping.value}>
@@ -363,6 +405,20 @@ export function BulkImport({ userId, onSaved }) {
           <div className={styles.bulkFileInfo}>
             <span>Confirme os <b>{confirmData.length}</b> lançamentos abaixo antes de importar</span>
           </div>
+          {duplicates.length > 0 && (
+            <div className={styles.analysisWarning} role="alert">
+              {duplicates.length} possível(is) duplicata(s) detectada(s) (mesmo estabelecimento, valor e data).
+              <label className={styles.dupToggle} style={{ display: 'block', marginTop: 8, cursor: 'pointer', fontWeight: 400 }}>
+                <input
+                  type="checkbox"
+                  checked={skipDuplicates}
+                  onChange={(e) => setSkipDuplicates(e.target.checked)}
+                  style={{ marginRight: 6 }}
+                />
+                Ignorar duplicatas na importação
+              </label>
+            </div>
+          )}
           <div className={styles.bulkPreview}>
             <h4>Dados que serão importados</h4>
             <div className={styles.bulkTableWrap}>
@@ -376,21 +432,24 @@ export function BulkImport({ userId, onSaved }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {confirmData.map((t, i) => (
-                    <tr key={i}>
-                      <td>{t.merchant}</td>
-                      <td>{t.value}</td>
-                      <td>{t.date}</td>
-                      <td>{t.category}</td>
-                    </tr>
-                  ))}
+                  {confirmData.map((t, i) => {
+                    const isDup = duplicates.some((d) => d.index === i)
+                    return (
+                      <tr key={i} style={isDup ? { opacity: 0.45, textDecoration: 'line-through' } : undefined}>
+                        <td>{t.merchant}{isDup && ' ⚠'}</td>
+                        <td>{t.value}</td>
+                        <td>{t.date}</td>
+                        <td>{t.category}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
           <div className={styles.formActions}>
             <button type="button" onClick={handleImport} disabled={saving}>
-              {saving ? 'Importando…' : `Confirmar importação de ${confirmData.length} transações`}
+              {saving ? 'Importando…' : `Confirmar importação de ${skipDuplicates ? confirmData.length - duplicates.length : confirmData.length} transações`}
             </button>
             <button type="button" onClick={() => { setStep('map'); setConfirmData([]) }} disabled={saving}>Voltar e corrigir</button>
           </div>

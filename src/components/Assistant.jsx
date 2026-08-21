@@ -4,6 +4,7 @@ import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
 import { getIdToken } from 'firebase/auth'
 import { auth, db } from '../firebase'
 import styles from '../Dashboard.module.css'
+import { buildMonthlySummary } from '../lib/finance'
 
 const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
 const userCollection = 'usuarios'
@@ -83,10 +84,20 @@ export function AssistantPanel({ data, stats, userId }) {
     setLoading(true)
     try {
       const token = await getIdToken(auth.currentUser)
+      const monthlySummary = buildMonthlySummary(data.transactions)
+      const recentTransactions = data.transactions.slice(-50)
       const response = await fetch(FINAI_AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ question, context: { transacoes: data.transactions, assinaturas: data.subscriptions, resumo: stats } }),
+        body: JSON.stringify({
+          question,
+          context: {
+            resumoMensal: monthlySummary,
+            transacoes: recentTransactions,
+            assinaturas: data.subscriptions,
+            resumo: stats,
+          },
+        }),
       })
       const result = await response.json()
       if (!response.ok || typeof result.answer !== 'string') throw new Error(result.error || 'Resposta indisponível')

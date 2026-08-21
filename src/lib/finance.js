@@ -354,26 +354,48 @@ export function buildChartSeries(transactions, monthCount = 12) {
   })
 }
 
+export function buildMonthlySummary(transactions) {
+  const summary = {}
+  transactions.forEach((transaction) => {
+    const key = monthKey(parseTransactionDate(transaction.date))
+    if (!summary[key]) summary[key] = { receitas: 0, despesas: 0, total: 0 }
+    const amount = Math.abs(parseAmount(transaction))
+    if (isExpense(transaction)) {
+      summary[key].despesas += amount
+    } else {
+      summary[key].receitas += amount
+    }
+    summary[key].total += 1
+  })
+  return Object.entries(summary)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, data]) => ({ mes: key, ...data }))
+}
+
 export function buildCategories(transactions, period = 'month') {
   const now = new Date()
-  let startDate = null
-  let endDate = null
-  if (period === 'month') {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-  } else if (period === 'prevMonth') {
-    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    endDate = new Date(now.getFullYear(), now.getMonth(), 1)
-  } else if (period === '6months') {
-    startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1)
-  } else if (period === '12months') {
-    startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+  const currentMonthKey = monthKey(now)
+  let selectedKey = currentMonthKey
+  if (period === 'prevMonth') {
+    const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    selectedKey = monthKey(prevDate)
+  } else if (period === '6months' || period === '12months') {
+    selectedKey = null
   }
   const totals = {}
   transactions.forEach((transaction) => {
     if (!isExpense(transaction)) return
-    const txDate = parseTransactionDate(transaction.date)
-    if (startDate && txDate < startDate) return
-    if (endDate && txDate >= endDate) return
+    const txKey = monthKey(parseTransactionDate(transaction.date))
+    if (selectedKey && txKey !== selectedKey) return
+    if (period === '6months') {
+      const txDate = parseTransactionDate(transaction.date)
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+      if (txDate < sixMonthsAgo) return
+    } else if (period === '12months') {
+      const txDate = parseTransactionDate(transaction.date)
+      const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+      if (txDate < twelveMonthsAgo) return
+    }
     const category = transaction.category || 'Outros'
     totals[category] = (totals[category] || 0) + Math.abs(parseAmount(transaction))
   })
