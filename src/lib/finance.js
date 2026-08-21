@@ -501,7 +501,7 @@ export function buildCategories(transactions, period = 'month') {
   if (period === 'prevMonth') {
     const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     selectedKey = monthKey(prevDate)
-  } else if (period === '6months' || period === '12months') {
+  } else if (period === 'all' || period === '6months' || period === '12months') {
     selectedKey = null
   }
   const totals = {}
