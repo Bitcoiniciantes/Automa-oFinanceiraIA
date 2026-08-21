@@ -381,6 +381,27 @@ export function buildMonthlySummary(transactions) {
     .map(([key, data]) => ({ mes: key, ...data }))
 }
 
+export function buildTopExpensesByMonth(transactions, limit = 3) {
+  const byMonth = {}
+  transactions.forEach((transaction) => {
+    if (!isExpense(transaction)) return
+    const key = monthKey(parseTransactionDate(transaction.date))
+    if (!byMonth[key]) byMonth[key] = []
+    byMonth[key].push({
+      estabelecimento: transaction.merchant,
+      categoria: transaction.category || 'Outros',
+      valor: Math.abs(parseAmount(transaction)),
+      data: transaction.date,
+    })
+  })
+  return Object.entries(byMonth)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, items]) => ({
+      mes: key,
+      maiores: items.sort((a, b) => b.valor - a.valor).slice(0, limit),
+    }))
+}
+
 export function buildCategories(transactions, period = 'month') {
   const now = new Date()
   const currentMonthKey = monthKey(now)
