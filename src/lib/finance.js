@@ -176,6 +176,7 @@ export function parseAmount(transaction) {
 }
 
 export function isExpense(transaction) {
+  if (transaction.kind === 'gasto') return true
   const value = String(transaction.value || '').trim()
   return value.includes('−') || value.startsWith('-')
 }

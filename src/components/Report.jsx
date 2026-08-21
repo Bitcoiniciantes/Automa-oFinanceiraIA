@@ -33,10 +33,26 @@ function formatDateBR(date) {
 export function MonthlyReport({ transactions, user }) {
   const currentKey = monthKey(new Date())
   const [selected, setSelected] = useState(currentKey)
+  const [mode, setMode] = useState('month')
   const year = Number(selected.slice(0, 4))
   const monthIndex = Number(selected.slice(5, 7)) - 1
 
   const monthData = useMemo(() => {
+    if (mode === 'year') {
+      const yearStr = String(year)
+      const list = transactions
+        .filter((transaction) => monthKey(parseTransactionDate(transaction.date)).startsWith(yearStr))
+        .map((transaction) => ({ ...transaction, parsedDate: parseTransactionDate(transaction.date) }))
+        .sort((a, b) => a.parsedDate - b.parsedDate)
+      let receitas = 0
+      let despesas = 0
+      list.forEach((transaction) => {
+        const amount = Math.abs(parseAmount(transaction))
+        if (isExpense(transaction)) despesas += amount
+        else receitas += amount
+      })
+      return { list, receitas, despesas, saldo: receitas - despesas, categories: buildCategories(list) }
+    }
     const list = transactions
       .filter((transaction) => monthKey(parseTransactionDate(transaction.date)) === selected)
       .map((transaction) => ({ ...transaction, parsedDate: parseTransactionDate(transaction.date) }))
@@ -49,29 +65,44 @@ export function MonthlyReport({ transactions, user }) {
       else receitas += amount
     })
     return { list, receitas, despesas, saldo: receitas - despesas, categories: buildCategories(list) }
-  }, [transactions, selected])
+  }, [transactions, selected, mode, year])
 
   const go = (offset) => {
+    if (mode === 'year') {
+      const newYear = year + offset
+      if (newYear > new Date().getFullYear()) return
+      setSelected(`${newYear}-01`)
+      return
+    }
     const key = monthKey(new Date(year, monthIndex + offset, 1))
     if (key > currentKey) return
     setSelected(key)
   }
 
+  const title = mode === 'year' ? `Relatório anual` : 'Relatório mensal'
+  const subtitle = mode === 'year' ? `Consolidado do ano de ${year} pronto para baixar em PDF.` : 'Consolidado do mês pronto para baixar em PDF.'
+  const sheetTitle = mode === 'year' ? `Relatório anual — ${year}` : `Relatório mensal — ${MONTH_NAMES[monthIndex]} de ${year}`
+  const periodLabel = mode === 'year' ? `${year}` : `${MONTH_NAMES[monthIndex]} de ${year}`
+
   return (
     <section className={styles.reportPage}>
       <div className={`${styles.reportToolbar} ${styles.noPrint}`}>
         <div>
-          <h2 className={styles.reportTitle}>Relatório mensal</h2>
-          <p className={styles.reportSub}>Consolidado do mês pronto para baixar em PDF.</p>
+          <h2 className={styles.reportTitle}>{title}</h2>
+          <p className={styles.reportSub}>{subtitle}</p>
         </div>
         <div className={styles.reportActions}>
-          <button className={styles.reportMonthBtn} onClick={() => go(-1)} aria-label="Mês anterior">
+          <select className={styles.select} value={mode} onChange={(e) => setMode(e.target.value)}>
+            <option value="month">Mensal</option>
+            <option value="year">Anual</option>
+          </select>
+          <button className={styles.reportMonthBtn} onClick={() => go(-1)} aria-label={mode === 'year' ? 'Ano anterior' : 'Mês anterior'}>
             ‹
           </button>
           <span className={styles.reportMonth}>
-            {MONTH_NAMES[monthIndex]} de {year}
+            {periodLabel}
           </span>
-          <button className={styles.reportMonthBtn} onClick={() => go(1)} disabled={selected >= currentKey} aria-label="Próximo mês">
+          <button className={styles.reportMonthBtn} onClick={() => go(1)} disabled={mode === 'year' ? year >= new Date().getFullYear() : selected >= currentKey} aria-label={mode === 'year' ? 'Próximo ano' : 'Próximo mês'}>
             ›
           </button>
           <button className={styles.reportDownload} onClick={() => window.print()}>
@@ -90,7 +121,7 @@ export function MonthlyReport({ transactions, user }) {
           </div>
           <div className={styles.reportSheetMeta}>
             <b>
-              Relatório mensal — {MONTH_NAMES[monthIndex]} de {year}
+              {sheetTitle}
             </b>
             <small>
               Gerado em {formatDateBR(new Date())} · {user.fullName}
@@ -108,14 +139,14 @@ export function MonthlyReport({ transactions, user }) {
             <b className={styles.reportRed}>{formatBRL(monthData.despesas)}</b>
           </div>
           <div className={styles.reportStat}>
-            <span>Saldo do mês</span>
+            <span>{mode === 'year' ? 'Saldo do ano' : 'Saldo do mês'}</span>
             <b>{formatBRL(monthData.saldo)}</b>
           </div>
         </div>
 
         <h3 className={styles.reportSectionTitle}>Despesas por categoria</h3>
         {monthData.categories.list.length === 0 ? (
-          <p className={styles.reportEmpty}>Sem despesas neste mês.</p>
+          <p className={styles.reportEmpty}>{mode === 'year' ? 'Sem despesas neste ano.' : 'Sem despesas neste mês.'}</p>
         ) : (
           <div className={styles.reportCategories}>
             {monthData.categories.list.map((category) => {
@@ -141,7 +172,7 @@ export function MonthlyReport({ transactions, user }) {
 
         <h3 className={styles.reportSectionTitle}>Lançamentos ({monthData.list.length})</h3>
         {monthData.list.length === 0 ? (
-          <p className={styles.reportEmpty}>Nenhum lançamento neste mês.</p>
+          <p className={styles.reportEmpty}>{mode === 'year' ? 'Nenhum lançamento neste ano.' : 'Nenhum lançamento neste mês.'}</p>
         ) : (
           <table className={styles.reportTable}>
             <thead>
@@ -168,8 +199,8 @@ export function MonthlyReport({ transactions, user }) {
         )}
 
         <footer className={styles.reportSheetFoot}>
-          <span>FinAI — o radar para as suas finanças</span>
-          <span>Saldo do mês: {formatBRL(monthData.saldo)}</span>
+          <span>2026 FinAI - JH o radar para as suas finanças</span>
+          <span>{mode === 'year' ? 'Saldo do ano' : 'Saldo do mês'}: {formatBRL(monthData.saldo)}</span>
         </footer>
       </article>
     </section>
