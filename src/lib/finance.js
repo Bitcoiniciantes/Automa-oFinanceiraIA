@@ -223,6 +223,15 @@ export function formatBRLNoDecimals(number) {
     .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`
 }
 
+export function formatBRLShort(number) {
+  const abs = Math.abs(number)
+  if (abs >= 1000) {
+    const k = abs / 1000
+    return `R$ ${k.toFixed(1).replace('.', ',')}k`
+  }
+  return `R$ ${Math.round(abs)}`
+}
+
 export function categoryType(category) {
   if (category === 'Moradia') return 'home'
   if (category === 'Transporte') return 'transport'

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
 import styles from '../Dashboard.module.css'
-import { buildChartSeries, buildCategories, CATEGORY_COLORS, formatBRLNoDecimals, monthKey } from '../lib/finance'
+import { buildChartSeries, buildCategories, CATEGORY_COLORS, formatBRLNoDecimals, formatBRLShort, monthKey } from '../lib/finance'
 
 export function StatCard({ label, value, change, icon, tone, down }) {
   return (
@@ -41,11 +41,11 @@ export function ChartPanel({ transactions }) {
                 <div className={styles.bars}>
                   <div className={styles.barWrap}>
                     <div className={`${styles.bar} ${styles.barDespesa}`} style={{ height: `${(point.despesas / max) * 100}%` }} />
-                    <span className={styles.barVal}>{formatBRLNoDecimals(point.despesas)}</span>
+                    {point.despesas > 0 && <span className={styles.barValFixed}>{formatBRLShort(point.despesas)}</span>}
                   </div>
                   <div className={styles.barWrap}>
                     <div className={`${styles.bar} ${styles.barReceita}`} style={{ height: `${(point.receitas / max) * 100}%` }} />
-                    <span className={styles.barVal}>{formatBRLNoDecimals(point.receitas)}</span>
+                    {point.receitas > 0 && <span className={styles.barValFixed}>{formatBRLShort(point.receitas)}</span>}
                   </div>
                 </div>
                 <span className={styles.barLabel}>

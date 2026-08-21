@@ -431,6 +431,17 @@ main {
   box-shadow: var(--shadow);
   z-index: 3;
 }
+.barValFixed {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  z-index: 3;
+}
 .barWrap:hover .barVal {
   opacity: 1;
 }
