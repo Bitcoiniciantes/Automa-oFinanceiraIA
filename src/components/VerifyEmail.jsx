@@ -8,6 +8,7 @@ export function VerifyEmail({ email, onRefresh }) {
   const [status, setStatus] = useState('')
   const [busy, setBusy] = useState(false)
   const [cooldown, setCooldown] = useState(0)
+  const [sent, setSent] = useState(false)
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -21,10 +22,11 @@ export function VerifyEmail({ email, onRefresh }) {
     setStatus('')
     try {
       await sendEmailVerification(auth.currentUser)
+      setSent(true)
       setStatus('E-mail de verificação enviado! Confira sua caixa de entrada e também a pasta de spam.')
       setCooldown(60)
     } catch (error) {
-      console.error('Falha ao reenviar a verificação de e-mail.', error.code)
+      console.error('Falha ao enviar a verificação de e-mail.', error.code)
       const messages = {
         'auth/too-many-requests': 'Muitos e-mails enviados. Aguarde alguns minutos.',
         'auth/network-request-failed': 'Falha de conexão. Tente novamente.',
@@ -49,23 +51,29 @@ export function VerifyEmail({ email, onRefresh }) {
       <main className={styles.authPage}>
         <div className={styles.authCard}>
           <h1>Confirme seu e-mail</h1>
-          <p>
-            Enviamos um link de confirmação para <b>{email}</b>. Clique no link recebido para ativar sua conta antes de usar o painel.
-          </p>
+          {!sent ? (
+            <p>
+              Clique no botão abaixo para enviar o link de confirmação para <b>{email}</b>. Ative sua conta antes de usar o painel.
+            </p>
+          ) : (
+            <p>
+              Enviamos um link de confirmação para <b>{email}</b>. Clique no link recebido para ativar sua conta antes de usar o painel.
+            </p>
+          )}
           {status && (
             <div className={styles.verifyNotice} role="alert">
               {status}
             </div>
           )}
           <button className={styles.authSubmit} onClick={resend} disabled={busy || cooldown > 0}>
-            {cooldown > 0 ? `Reenviar (${cooldown}s)` : busy ? 'Enviando…' : 'Reenviar e-mail'}
+            {cooldown > 0 ? `Reenviar (${cooldown}s)` : busy ? 'Enviando…' : sent ? 'Reenviar e-mail' : 'Enviar e-mail'}
           </button>
           <button className={styles.authSwitch} onClick={onRefresh}>
             Já verifiquei — entrar
           </button>
         </div>
       </main>
-      <footer className={styles.landingFooter}>FinAI — o radar para as suas finanças</footer>
+      <footer className={styles.landingFooter}>2026 FinAI - JH o radar para as suas finanças</footer>
     </div>
   )
 }
