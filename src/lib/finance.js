@@ -26,6 +26,7 @@ export const CATEGORY_KEYWORDS = [
       'suco',
       'feira',
       'quitanda',
+      'gastronomia',
     ],
   ],
   [
