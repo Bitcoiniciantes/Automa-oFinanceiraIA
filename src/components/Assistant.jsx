@@ -105,6 +105,7 @@ export function AssistantPanel({ data, stats, userId }) {
         body: JSON.stringify({
           question,
           context: {
+            instrucoes: 'Seja direto e conciso. Não inclua avisos, disclaimers ouRodapés. Responda apenas o que foi perguntado.',
             resumoMensal: monthlySummary,
             tendencias: trends,
             maioresDespesasPorMes: topExpenses,
