@@ -4,7 +4,7 @@ import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
 import { getIdToken } from 'firebase/auth'
 import { auth, db } from '../firebase'
 import styles from '../Dashboard.module.css'
-import { buildMonthlySummary, buildTopExpensesByMonth } from '../lib/finance'
+import { buildMonthlySummary, buildTopExpensesByMonth, buildTrends, buildCategoryAverages, buildRecurring, buildTopExpensesAnual } from '../lib/finance'
 
 const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
 const userCollection = 'usuarios'
@@ -86,6 +86,10 @@ export function AssistantPanel({ data, stats, userId }) {
       const token = await getIdToken(auth.currentUser)
       const monthlySummary = buildMonthlySummary(data.transactions)
       const topExpenses = buildTopExpensesByMonth(data.transactions, 3)
+      const trends = buildTrends(data.transactions)
+      const categoryAverages = buildCategoryAverages(data.transactions)
+      const recurring = buildRecurring(data.transactions)
+      const topAnnual = buildTopExpensesAnual(data.transactions, 5)
       const recentTransactions = data.transactions.slice(-50)
       const response = await fetch(FINAI_AI_ENDPOINT, {
         method: 'POST',
@@ -94,7 +98,11 @@ export function AssistantPanel({ data, stats, userId }) {
           question,
           context: {
             resumoMensal: monthlySummary,
+            tendencias: trends,
             maioresDespesasPorMes: topExpenses,
+            top5Anual: topAnnual,
+            mediaPorCategoria: categoryAverages,
+            transacoesRecorrentes: recurring,
             transacoes: recentTransactions,
             assinaturas: data.subscriptions,
             resumo: stats,

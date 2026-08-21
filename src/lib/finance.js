@@ -402,6 +402,98 @@ export function buildTopExpensesByMonth(transactions, limit = 3) {
     }))
 }
 
+export function buildTrends(transactions) {
+  const now = new Date()
+  const months = []
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    months.push(monthKey(date))
+  }
+  const byMonth = {}
+  transactions.forEach((transaction) => {
+    const key = monthKey(parseTransactionDate(transaction.date))
+    if (!byMonth[key]) byMonth[key] = { receitas: 0, despesas: 0 }
+    const amount = Math.abs(parseAmount(transaction))
+    if (isExpense(transaction)) byMonth[key].despesas += amount
+    else byMonth[key].receitas += amount
+  })
+  const trends = []
+  for (let i = 1; i < months.length; i++) {
+    const prev = byMonth[months[i - 1]] || { receitas: 0, despesas: 0 }
+    const curr = byMonth[months[i]] || { receitas: 0, despesas: 0 }
+    const variationDespesas = prev.despesas > 0 ? ((curr.despesas - prev.despesas) / prev.despesas * 100) : null
+    const variationReceitas = prev.receitas > 0 ? ((curr.receitas - prev.receitas) / prev.receitas * 100) : null
+    trends.push({
+      mes: months[i],
+      despesas: curr.despesas,
+      receitas: curr.receitas,
+      variacaoDespesas: variationDespesas !== null ? Math.round(variationDespesas) : null,
+      variacaoReceitas: variationReceitas !== null ? Math.round(variationReceitas) : null,
+    })
+  }
+  return trends
+}
+
+export function buildCategoryAverages(transactions) {
+  const now = new Date()
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+  const totals = {}
+  const counts = {}
+  transactions.forEach((transaction) => {
+    if (!isExpense(transaction)) return
+    const txDate = parseTransactionDate(transaction.date)
+    if (txDate < sixMonthsAgo) return
+    const category = transaction.category || 'Outros'
+    totals[category] = (totals[category] || 0) + Math.abs(parseAmount(transaction))
+    counts[category] = (counts[category] || 0) + 1
+  })
+  const months = 6
+  return Object.entries(totals)
+    .map(([category, total]) => ({
+      categoria: category,
+      mediaMensal: Math.round(total / months * 100) / 100,
+      totalPeriodo: Math.round(total * 100) / 100,
+      totalTransacoes: counts[category],
+    }))
+    .sort((a, b) => b.mediaMensal - a.mediaMensal)
+}
+
+export function buildRecurring(transactions) {
+  const byMerchant = {}
+  transactions.forEach((transaction) => {
+    if (!isExpense(transaction)) return
+    const key = transaction.merchant.trim().toLowerCase()
+    if (!byMerchant[key]) byMerchant[key] = { nome: transaction.merchant, categoria: transaction.category || 'Outros', valores: [], datas: [] }
+    byMerchant[key].valores.push(Math.abs(parseAmount(transaction)))
+    byMerchant[key].datas.push(transaction.date)
+  })
+  return Object.values(byMerchant)
+    .filter((item) => item.valores.length >= 2)
+    .map((item) => ({
+      nome: item.nome,
+      categoria: item.categoria,
+      vezes: item.valores.length,
+      media: Math.round(item.valores.reduce((a, b) => a + b, 0) / item.valores.length * 100) / 100,
+      total: Math.round(item.valores.reduce((a, b) => a + b, 0) * 100) / 100,
+    }))
+    .sort((a, b) => b.total - a.total)
+}
+
+export function buildTopExpensesAnual(transactions, limit = 5) {
+  const now = new Date()
+  const yearStr = String(now.getFullYear())
+  const expenses = transactions
+    .filter((t) => isExpense(t) && monthKey(parseTransactionDate(t.date)).startsWith(yearStr))
+    .map((t) => ({
+      estabelecimento: t.merchant,
+      categoria: t.category || 'Outros',
+      valor: Math.abs(parseAmount(t)),
+      data: t.date,
+    }))
+    .sort((a, b) => b.valor - a.valor)
+  return expenses.slice(0, limit)
+}
+
 export function buildCategories(transactions, period = 'month') {
   const now = new Date()
   const currentMonthKey = monthKey(now)
