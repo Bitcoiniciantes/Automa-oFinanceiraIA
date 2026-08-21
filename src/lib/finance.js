@@ -416,16 +416,25 @@ export function buildCategories(transactions, period = 'month') {
 }
 
 export function buildInsight(transactions, subscriptions) {
-  const expenses = transactions.filter((transaction) => isExpense(transaction))
+  const now = new Date()
+  const currentMonthKey = monthKey(now)
+  const expenses = transactions.filter((transaction) => {
+    if (!isExpense(transaction)) return false
+    return monthKey(parseTransactionDate(transaction.date)) === currentMonthKey
+  })
   const byCategory = {}
   expenses.forEach((transaction) => {
     const category = transaction.category || 'Outros'
     byCategory[category] = (byCategory[category] || 0) + Math.abs(parseAmount(transaction))
   })
   const top = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0]
+  const totalDespesas = Object.values(byCategory).reduce((sum, value) => sum + value, 0)
   const subTotal = subscriptions.reduce((sum, subscription) => sum + Math.abs(parseAmount(subscription)), 0)
   const parts = []
-  if (top) parts.push(`Sua maior despesa é com ${top[0]} (${formatBRL(top[1])})`)
+  if (top) {
+    const pct = totalDespesas > 0 ? Math.round((top[1] / totalDespesas) * 100) : 0
+    parts.push(`Sua maior despesa em ${MONTH_LABELS[now.getMonth()]} é ${top[0]} (${formatBRL(top[1])}, ${pct}% do total)`)
+  }
   if (subTotal > 0) parts.push(`suas assinaturas somam ${formatBRL(subTotal)} por mês`)
   if (parts.length) return `${parts.join('. ')}.`
   return 'Acompanhe seus gastos para identificar oportunidades de economia.'
