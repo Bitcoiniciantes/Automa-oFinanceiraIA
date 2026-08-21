@@ -51,7 +51,7 @@ export function MonthlyReport({ transactions, user }) {
         if (isExpense(transaction)) despesas += amount
         else receitas += amount
       })
-      return { list, receitas, despesas, saldo: receitas - despesas, categories: buildCategories(list) }
+      return { list, receitas, despesas, saldo: receitas - despesas, categories: buildCategories(list, 'all') }
     }
     const list = transactions
       .filter((transaction) => monthKey(parseTransactionDate(transaction.date)) === selected)
@@ -64,7 +64,7 @@ export function MonthlyReport({ transactions, user }) {
       if (isExpense(transaction)) despesas += amount
       else receitas += amount
     })
-    return { list, receitas, despesas, saldo: receitas - despesas, categories: buildCategories(list) }
+    return { list, receitas, despesas, saldo: receitas - despesas, categories: buildCategories(list, 'all') }
   }, [transactions, selected, mode, year])
 
   const go = (offset) => {
