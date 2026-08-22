@@ -843,46 +843,46 @@ main {
   border-radius: 14px;
   padding: 3px;
   background:
-    conic-gradient(from var(--a1) at 50% 50%, #8b5cf6, #39ff14, #ff1744, #ffea00, #ff6d00, #8b5cf6),
-    conic-gradient(from var(--a2) at 50% 50%, #ff6d00, #8b5cf6, #39ff14, #ff1744, #ffea00, #ff6d00);
+    conic-gradient(from var(--a1) at 50% 50%, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed),
+    conic-gradient(from var(--a2) at 50% 50%, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e);
   background-blend-mode: screen;
   animation:
-    heroSpin1 2.5s linear infinite,
-    heroSpin2 4s linear infinite reverse;
+    heroSpin1 3s linear infinite,
+    heroSpin2 5s linear infinite reverse;
 }
 .heroButtonWrap::before {
   content: '';
   position: absolute;
-  inset: -12px;
-  border-radius: 26px;
+  inset: -14px;
+  border-radius: 28px;
   background:
-    conic-gradient(from var(--a1) at 50% 50%, #8b5cf6, #39ff14, #ff1744, #ffea00, #ff6d00, #8b5cf6),
-    conic-gradient(from var(--a2) at 50% 50%, #ff6d00, #8b5cf6, #39ff14, #ff1744, #ffea00, #ff6d00),
-    conic-gradient(from var(--a3) at 50% 50%, #39ff14, #ff1744, #ffea00, #ff6d00, #8b5cf6, #39ff14);
+    conic-gradient(from var(--a1) at 50% 50%, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed),
+    conic-gradient(from var(--a3) at 50% 50%, #f97316, #7c3aed, #22c55e, #ef4444, #eab308, #f97316),
+    conic-gradient(from var(--a2) at 50% 50%, #22c55e, #eab308, #7c3aed, #f97316, #ef4444, #22c55e);
   background-blend-mode: screen;
-  filter: blur(18px);
-  opacity: 0.8;
+  filter: blur(20px);
+  opacity: 0.85;
   z-index: -1;
   animation:
-    heroSpin1 2.5s linear infinite,
-    heroSpin2 4s linear infinite reverse,
-    heroSpin3 3.2s linear infinite;
+    heroSpin1 3s linear infinite,
+    heroSpin3 4.5s linear infinite reverse,
+    heroSpin2 5s linear infinite;
 }
 .heroButtonWrap::after {
   content: '';
   position: absolute;
-  inset: -28px;
-  border-radius: 40px;
+  inset: -32px;
+  border-radius: 44px;
   background:
-    conic-gradient(from var(--a2) at 50% 50%, #ff6d00, #8b5cf6, #39ff14, #ff1744, #ffea00, #ff6d00),
-    conic-gradient(from var(--a3) at 50% 50%, #39ff14, #ff1744, #ffea00, #ff6d00, #8b5cf6, #39ff14);
+    conic-gradient(from var(--a3) at 50% 50%, #f97316, #7c3aed, #22c55e, #ef4444, #eab308, #f97316),
+    conic-gradient(from var(--a1) at 50% 50%, #7c3aed, #eab308, #ef4444, #22c55e, #f97316, #7c3aed);
   background-blend-mode: screen;
-  filter: blur(35px);
-  opacity: 0.45;
+  filter: blur(45px);
+  opacity: 0.5;
   z-index: -2;
   animation:
-    heroSpin2 4s linear infinite reverse,
-    heroSpin3 3.2s linear infinite;
+    heroSpin3 4.5s linear infinite reverse,
+    heroSpin1 3s linear infinite;
 }
 @property --a1 {
   syntax: '<angle>';
