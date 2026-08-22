@@ -107,9 +107,11 @@ export default function AuthGate() {
             </div>
           </div>
         </div>
-        <button className={styles.heroButton} onClick={scrollToAuth}>
-          Ver a mágica acontecer
-        </button>
+        <div className={styles.heroButtonWrap}>
+          <button className={styles.heroButton} onClick={scrollToAuth}>
+            Ver a mágica acontecer
+          </button>
+        </div>
       </section>
 
       <section className={styles.features}>
