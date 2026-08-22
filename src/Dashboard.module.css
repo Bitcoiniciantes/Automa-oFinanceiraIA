@@ -840,63 +840,70 @@ main {
   position: relative;
   display: inline-block;
   margin-top: 26px;
-  border-radius: 14px;
-  padding: 3px;
-  background: conic-gradient(from 0deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed);
-  animation: heroSpinA 3s linear infinite;
-  overflow: visible;
   z-index: 1;
 }
 .heroButtonWrap::before {
   content: '';
   position: absolute;
-  top: -30px;
-  left: -30px;
-  right: -30px;
-  bottom: -30px;
-  border-radius: 40px;
-  background: conic-gradient(from 0deg, #f97316, #7c3aed, #22c55e, #ef4444, #eab308, #f97316);
-  filter: blur(30px);
-  opacity: 0.85;
-  z-index: 0;
-  animation: heroSpinB 5s linear infinite;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  border-radius: 999px;
+  background: conic-gradient(from 0deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed);
+  filter: blur(18px);
+  opacity: 0.7;
+  z-index: -1;
+  animation: heroGlowSpin 3s linear infinite;
 }
 .heroButtonWrap::after {
   content: '';
   position: absolute;
-  top: -55px;
-  left: -55px;
-  right: -55px;
-  bottom: -55px;
-  border-radius: 70px;
-  background: conic-gradient(from 0deg, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e);
-  filter: blur(70px);
-  opacity: 0.5;
-  z-index: 0;
-  animation: heroSpinC 4s linear infinite;
+  top: -40px;
+  left: -40px;
+  right: -40px;
+  bottom: -40px;
+  border-radius: 999px;
+  background: conic-gradient(from 120deg, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e);
+  filter: blur(35px);
+  opacity: 0.4;
+  z-index: -2;
+  animation: heroGlowSpin2 5s linear infinite;
 }
-@keyframes heroSpinA {
+@keyframes heroGlowSpin {
   to { transform: rotate(360deg); }
 }
-@keyframes heroSpinB {
+@keyframes heroGlowSpin2 {
   to { transform: rotate(-360deg); }
-}
-@keyframes heroSpinC {
-  to { transform: rotate(360deg); }
 }
 .heroButton {
   position: relative;
   display: block;
-  padding: 14px 30px;
-  border-radius: 11px;
-  background: #fff;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
   color: #111;
-  font-size: 15px;
-  font-weight: 750;
-  border: none;
+  background: #fff;
+  border: 3px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
-  z-index: 1;
-  letter-spacing: 0.01em;
+  background-image:
+    linear-gradient(#fff, #fff),
+    linear-gradient(90deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e, #ef4444);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 300% 100%;
+  animation: heroBorderFlow 3s linear infinite;
+}
+.heroButton:hover {
+  background-image:
+    linear-gradient(#f0f0f0, #f0f0f0),
+    linear-gradient(90deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e, #ef4444);
+  background-size: 100% 100%, 300% 100%;
+}
+@keyframes heroBorderFlow {
+  0% { background-position: 0 0, 0% 50%; }
+  100% { background-position: 0 0, 300% 50%; }
 }
 .chatDemo {
   max-width: 470px;
@@ -907,9 +914,6 @@ main {
   box-shadow: var(--shadow);
   overflow: hidden;
   text-align: left;
-}
-.heroButton:hover {
-  background: #e8e8e8;
 }
 .chatDemoHead {
   padding: 12px 16px;
