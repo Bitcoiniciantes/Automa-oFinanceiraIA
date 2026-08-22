@@ -849,12 +849,17 @@ main {
   animation:
     heroSpin1 3s linear infinite,
     heroSpin2 5s linear infinite reverse;
+  overflow: visible;
+  z-index: 1;
 }
 .heroButtonWrap::before {
   content: '';
   position: absolute;
-  inset: -21px;
-  border-radius: 35px;
+  top: -30px;
+  left: -30px;
+  right: -30px;
+  bottom: -30px;
+  border-radius: 40px;
   background:
     conic-gradient(from var(--a1) at 50% 50%, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed),
     conic-gradient(from var(--a3) at 50% 50%, #f97316, #7c3aed, #22c55e, #ef4444, #eab308, #f97316),
@@ -862,7 +867,7 @@ main {
   background-blend-mode: screen;
   filter: blur(30px);
   opacity: 0.85;
-  z-index: -1;
+  z-index: 0;
   animation:
     heroSpin1 3s linear infinite,
     heroSpin3 4.5s linear infinite reverse,
@@ -871,15 +876,18 @@ main {
 .heroButtonWrap::after {
   content: '';
   position: absolute;
-  inset: -48px;
-  border-radius: 62px;
+  top: -55px;
+  left: -55px;
+  right: -55px;
+  bottom: -55px;
+  border-radius: 70px;
   background:
     conic-gradient(from var(--a3) at 50% 50%, #f97316, #7c3aed, #22c55e, #ef4444, #eab308, #f97316),
     conic-gradient(from var(--a1) at 50% 50%, #7c3aed, #eab308, #ef4444, #22c55e, #f97316, #7c3aed);
   background-blend-mode: screen;
-  filter: blur(68px);
+  filter: blur(70px);
   opacity: 0.5;
-  z-index: -2;
+  z-index: 0;
   animation:
     heroSpin3 4.5s linear infinite reverse,
     heroSpin1 3s linear infinite;
