@@ -840,70 +840,49 @@ main {
   position: relative;
   display: inline-block;
   margin-top: 26px;
-  z-index: 1;
 }
 .heroButtonWrap::before {
   content: '';
   position: absolute;
-  top: -20px;
-  left: -20px;
-  right: -20px;
-  bottom: -20px;
+  inset: -6px;
   border-radius: 999px;
-  background: conic-gradient(from 0deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed);
-  filter: blur(18px);
-  opacity: 0.7;
+  background-image: linear-gradient(90deg, #a3e635 0%, #3b82f6 25%, #a855f7 50%, #ec4899 75%, #a3e635 100%);
+  background-size: 200% 100%;
+  filter: blur(10px);
+  opacity: 0.8;
   z-index: -1;
-  animation: heroGlowSpin 3s linear infinite;
+  animation: heroBorderFlow 3s linear infinite;
 }
 .heroButtonWrap::after {
-  content: '';
-  position: absolute;
-  top: -40px;
-  left: -40px;
-  right: -40px;
-  bottom: -40px;
-  border-radius: 999px;
-  background: conic-gradient(from 120deg, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e);
-  filter: blur(35px);
-  opacity: 0.4;
-  z-index: -2;
-  animation: heroGlowSpin2 5s linear infinite;
-}
-@keyframes heroGlowSpin {
-  to { transform: rotate(360deg); }
-}
-@keyframes heroGlowSpin2 {
-  to { transform: rotate(-360deg); }
+  display: none;
 }
 .heroButton {
   position: relative;
-  display: block;
-  padding: 14px 32px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 14px 36px;
+  font-size: 17px;
+  font-weight: 700;
   color: #111;
   background: #fff;
-  border: 3px solid transparent;
   border-radius: 999px;
   cursor: pointer;
+  border: 2px solid transparent;
   background-image:
     linear-gradient(#fff, #fff),
-    linear-gradient(90deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e, #ef4444);
+    linear-gradient(90deg, #a3e635 0%, #3b82f6 25%, #a855f7 50%, #ec4899 75%, #a3e635 100%);
+  background-size: 100% 100%, 200% 100%;
   background-origin: border-box;
   background-clip: padding-box, border-box;
-  background-size: 100% 100%, 300% 100%;
   animation: heroBorderFlow 3s linear infinite;
 }
 .heroButton:hover {
   background-image:
     linear-gradient(#f0f0f0, #f0f0f0),
-    linear-gradient(90deg, #7c3aed, #22c55e, #ef4444, #eab308, #f97316, #7c3aed, #22c55e, #ef4444);
-  background-size: 100% 100%, 300% 100%;
+    linear-gradient(90deg, #a3e635 0%, #3b82f6 25%, #a855f7 50%, #ec4899 75%, #a3e635 100%);
+  background-size: 100% 100%, 200% 100%;
 }
 @keyframes heroBorderFlow {
-  0% { background-position: 0 0, 0% 50%; }
-  100% { background-position: 0 0, 300% 50%; }
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 .chatDemo {
   max-width: 470px;
