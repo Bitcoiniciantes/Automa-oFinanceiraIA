@@ -6,6 +6,9 @@ const basePath = process.env.VITE_BASE_PATH || '/'
 export default defineConfig({
   base: basePath,
   plugins: [react()],
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     environment: 'jsdom',
     globals: false,

@@ -272,7 +272,7 @@ export function formatChargeDate(iso) {
 }
 
 export function findDuplicate(transactions, candidate) {
-  const merchant = candidate.merchant.trim().toLowerCase()
+  const merchant = String(candidate.merchant || '').trim().toLowerCase()
   const candidateDay = parseTransactionDate(candidate.date).toDateString()
   const candidateAmount = Math.abs(candidate.amount)
   return transactions.find((transaction) => {

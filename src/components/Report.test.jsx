@@ -15,11 +15,16 @@ const rowCount = () => screen.getAllByRole('row').length
 
 describe('MonthlyReport', () => {
   beforeEach(() => {
+    // Os dados de teste são de agosto/2026: fixa o "mês atual" para os testes
+    // não dependerem da data real em que a suíte roda.
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-15T12:00:00'))
     window.print = vi.fn()
   })
 
   afterEach(() => {
     cleanup()
+    vi.useRealTimers()
   })
 
   it('renderiza resumo do mês atual (agosto) com receitas, despesas e saldo', () => {

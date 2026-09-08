@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
 import { getIdToken } from 'firebase/auth'
@@ -16,6 +16,12 @@ export function AssistantPanel({ data, stats, userId }) {
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [historyLoaded, setHistoryLoaded] = useState(false)
+
+  // Auto-save com debounce: cada pergunta/resposta altera `messages` 2x em
+  // sequência; sem debounce cada alteração geraria um write no Firestore.
+  const saveTimer = useRef(null)
+  const pendingMessages = useRef(null)
+  const HISTORY_SAVE_DEBOUNCE_MS = 1000
 
   const suggestions = [
     'Quais são meus maiores gastos recorrentes?',
@@ -37,12 +43,45 @@ export function AssistantPanel({ data, stats, userId }) {
 
   useEffect(() => {
     if (!historyLoaded) return
-    setDoc(
-      doc(db, userCollection, userId, 'assistente', 'conversa'),
-      { messages: messages.slice(-30), updatedAt: new Date().toISOString() },
-      { merge: true },
-    ).catch((error) => console.warn('Não foi possível salvar o histórico do assistente.', error))
+    pendingMessages.current = { userId, messages: messages.slice(-30) }
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null
+      const pending = pendingMessages.current
+      pendingMessages.current = null
+      if (!pending) return
+      setDoc(
+        doc(db, userCollection, pending.userId, 'assistente', 'conversa'),
+        { messages: pending.messages, updatedAt: new Date().toISOString() },
+        { merge: true },
+      ).catch((error) => console.warn('Não foi possível salvar o histórico do assistente.', error))
+    }, HISTORY_SAVE_DEBOUNCE_MS)
+    return () => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current)
+        saveTimer.current = null
+      }
+    }
   }, [messages, historyLoaded, userId])
+
+  // Flush no unmount para não perder a última alteração pendente.
+  useEffect(
+    () => () => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current)
+        saveTimer.current = null
+      }
+      const pending = pendingMessages.current
+      pendingMessages.current = null
+      if (!pending) return
+      setDoc(
+        doc(db, userCollection, pending.userId, 'assistente', 'conversa'),
+        { messages: pending.messages, updatedAt: new Date().toISOString() },
+        { merge: true },
+      ).catch(() => {})
+    },
+    []
+  )
 
   async function sendMessage(event) {
     event.preventDefault()
