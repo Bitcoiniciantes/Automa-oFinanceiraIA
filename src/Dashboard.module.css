@@ -169,9 +169,6 @@
   font-weight: 700;
   padding: 9px 11px;
 }
-.upgradeInPage {
-  margin-top: 2cm;
-}
 main {
   flex: 1;
   max-width: 1500px;
@@ -468,18 +465,6 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-.legend span:before {
-  content: '';
-  width: 9px;
-  height: 9px;
-  border-radius: 3px;
-}
-.legendBlue:before {
-  background: #635bff;
-}
-.legendOrange:before {
-  background: #f2a94a;
 }
 .legend span:before {
   content: '';
@@ -805,17 +790,6 @@ main {
   text-align: center;
   max-width: 820px;
   margin: 0 auto;
-}
-.heroTag {
-  display: inline-block;
-  margin: 0 0 18px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: var(--green-soft);
-  color: var(--green);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.3px;
 }
 .hero h1 {
   font-size: clamp(34px, 6vw, 56px);
@@ -1369,6 +1343,15 @@ main {
   border-color: #f3cdd2;
   color: var(--red);
 }
+.typeIncome {
+  color: var(--green);
+}
+.expenseForm .typeIncome select {
+  background: var(--green-soft);
+  border-color: #b8e6d3;
+  color: var(--green);
+  font-weight: 700;
+}
 .typeField option {
   background: #fff;
   color: var(--ink);
@@ -1438,6 +1421,15 @@ main {
 .analysisWarning {
   background: var(--red-soft);
   color: #bd3945;
+}
+.dupToggle {
+  display: block;
+  margin-top: 8px;
+  cursor: pointer;
+  font-weight: 400;
+}
+.dupToggle input {
+  margin-right: 6px;
 }
 
 .rowActions {

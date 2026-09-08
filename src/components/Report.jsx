@@ -85,7 +85,7 @@ export function MonthlyReport({ transactions, user }) {
   const periodLabel = mode === 'year' ? `${year}` : `${MONTH_NAMES[monthIndex]} de ${year}`
 
   return (
-    <section className={styles.reportPage}>
+    <section>
       <div className={`${styles.reportToolbar} ${styles.noPrint}`}>
         <div>
           <h2 className={styles.reportTitle}>{title}</h2>

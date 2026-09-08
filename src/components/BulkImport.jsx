@@ -411,12 +411,11 @@ export function BulkImport({ userId, onSaved }) {
           {duplicates.length > 0 && (
             <div className={styles.analysisWarning} role="alert">
               {duplicates.length} possível(is) duplicata(s) detectada(s) (mesmo estabelecimento, valor e data).
-              <label className={styles.dupToggle} style={{ display: 'block', marginTop: 8, cursor: 'pointer', fontWeight: 400 }}>
+              <label className={styles.dupToggle}>
                 <input
                   type="checkbox"
                   checked={skipDuplicates}
                   onChange={(e) => setSkipDuplicates(e.target.checked)}
-                  style={{ marginRight: 6 }}
                 />
                 Ignorar duplicatas na importação
               </label>
