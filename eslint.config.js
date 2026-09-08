@@ -28,4 +28,8 @@ export default [
     files: ['src/**/*.test.{js,jsx}'],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
+  {
+    files: ['vite.config.js', 'eslint.config.js'],
+    languageOptions: { globals: { ...globals.node } },
+  },
 ]
