@@ -35,9 +35,40 @@ usuarios/{uid}                          (doc pai pode ser virtual — só subcol
 
 ## Deploy
 
-- Branch `agent/supabase-invoice-upload` == `main`. Push em `main` dispara GitHub Actions (base `/Automa-oFinanceiraIA/`) e Cloudflare Pages (base `/`).
-- Build local usa base `/Automa-oFinanceiraIA/`; para o Cloudflare o build precisa de `--base=/`.
+- Branch `agent/supabase-invoice-upload` == `main`. Push em `main` dispara GitHub Actions (GitHub Pages).
+- O `base` do Vite vem de `VITE_BASE_PATH` (`vite.config.js`, default `/`):
+  GitHub Pages usa `/Automa-oFinanceiraIA/` (definido no workflow `deploy.yml`);
+  Cloudflare Pages e Firebase Hosting usam `/` (raiz). Não fixar `base` no código.
+- Build local usa base `/`; para o Cloudflare/Firebase não é preciso flag extra.
 - Verificar deploy lendo o hash `assets/index-*.js` no HTML publicado (latência do Cloudflare pode passar de 100 s).
+
+## Configuração centralizada (`src/lib/constants.js`)
+
+- Nomes persistidos no Firestore (`USER_COLLECTION = 'usuarios'`, subcoleções)
+  e endpoints do Worker (`FINAI_ASSISTANT_ENDPOINT`, `FINAI_INVOICE_ENDPOINT`)
+  têm fonte única em `src/lib/constants.js`. Não duplicar literais nos componentes.
+- `VITE_FINAI_API_BASE_URL` permite trocar a base da API; sem ela, usa produção.
+- Nunca alterar os valores persistidos sem migração.
+
+## Segurança e persistência
+
+- `renderMarkdown` vive em `src/lib/markdown.js`: escapa `&<>` antes de inserir
+  tags próprias; sem links/atributos → sem vetor XSS (travado por testes em
+  `src/components/Assistant.test.jsx`). Não reintroduzir HTML arbitrário.
+- `firestore.rules`: sem a regra pública morta `/dashboards`; `assistente` tem
+  regra explícita por UID (igual ao wildcard). Não ampliar permissões.
+- Auto-save do Assistant tem debounce de 1 s com flush no unmount
+  (`Assistant.autosave.test.jsx`). Não voltar a salvar a cada `setState`.
+- `findDuplicate` tolera `merchant` ausente (retorna sem match, sem throw).
+
+## Convenções deliberadas (não "corrigir")
+
+- CSS em um único `Dashboard.module.css`; `:global()` só para tokens/reset.
+- API pública em inglês, variáveis internas de domínio em português (`finance.js`).
+- Componentes `export function`; `Icons.jsx` usa arrow (ok pelo lint).
+- `handle*` só no BulkImport; demais usam verbos — ambos aceitos.
+- `console.warn` = recuperável, `console.error` = falha real.
+- App Check só fora de `DEV` e com key presente (dev local sem App Check é intencional).
 
 ## Restrições
 
