@@ -127,7 +127,9 @@ export function BulkImport({ userId, onSaved }) {
     const colRef = collection(db, 'usuarios', userId, 'transacoes')
     getDocs(colRef).then((snapshot) => {
       setExistingTransactions(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
-    }).catch(() => {})
+    }).catch((error) => {
+      console.warn('Falha ao carregar transações existentes para detecção de duplicatas.', error)
+    })
   }, [userId])
 
   function buildTransactions() {
