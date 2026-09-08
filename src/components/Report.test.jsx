@@ -1,7 +1,7 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { MonthlyReport } from './Report.jsx'
+import { MonthlyReport } from './Report'
 
 const user = { fullName: 'João Silva' }
 const transactions = [

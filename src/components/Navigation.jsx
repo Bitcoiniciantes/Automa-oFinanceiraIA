@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { signOut } from 'firebase/auth'
 import { auth } from '../firebase'
 import styles from '../Dashboard.module.css'
-import { NAV_ITEMS } from './navItems.jsx'
+import { NAV_ITEMS } from './NavItems'
 
 export function Sidebar({ activeItem, onNavigate, subscriptionCount }) {
   return (

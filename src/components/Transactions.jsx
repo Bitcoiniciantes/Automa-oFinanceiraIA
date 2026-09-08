@@ -475,12 +475,12 @@ TransactionItem.propTypes = {
 
 ExpenseForm.propTypes = {
   userId: PropTypes.string.isRequired,
-  transactions: PropTypes.array.isRequired,
+  transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
   onSaved: PropTypes.func.isRequired,
 }
 
 TransactionList.propTypes = {
   userId: PropTypes.string.isRequired,
-  transactions: PropTypes.array.isRequired,
+  transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
   onChanged: PropTypes.func.isRequired,
 }

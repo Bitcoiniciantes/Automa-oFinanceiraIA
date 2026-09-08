@@ -243,7 +243,7 @@ function SubscriptionForm({ userId, onSaved }) {
 
 SubscriptionRadar.propTypes = {
   userId: PropTypes.string.isRequired,
-  subscriptions: PropTypes.array.isRequired,
+  subscriptions: PropTypes.arrayOf(PropTypes.object).isRequired,
   onChanged: PropTypes.func.isRequired,
 }
 

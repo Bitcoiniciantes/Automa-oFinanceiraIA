@@ -208,6 +208,6 @@ export function MonthlyReport({ transactions, user }) {
 }
 
 MonthlyReport.propTypes = {
-  transactions: PropTypes.array.isRequired,
+  transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
   user: PropTypes.shape({ fullName: PropTypes.string }).isRequired,
 }

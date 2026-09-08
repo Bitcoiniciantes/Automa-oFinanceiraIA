@@ -147,11 +147,11 @@ StatCard.propTypes = {
 }
 
 ChartPanel.propTypes = {
-  transactions: PropTypes.array.isRequired,
+  transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
 }
 
 CategoryPanel.propTypes = {
-  transactions: PropTypes.array.isRequired,
+  transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
 }
 
 InsightCard.propTypes = {

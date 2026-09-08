@@ -196,7 +196,7 @@ export function AssistantPanel({ data, stats, userId }) {
 }
 
 AssistantPanel.propTypes = {
-  data: PropTypes.shape({ transactions: PropTypes.array, subscriptions: PropTypes.array }).isRequired,
-  stats: PropTypes.array.isRequired,
+  data: PropTypes.shape({ transactions: PropTypes.arrayOf(PropTypes.object), subscriptions: PropTypes.arrayOf(PropTypes.object) }).isRequired,
+  stats: PropTypes.arrayOf(PropTypes.object).isRequired,
   userId: PropTypes.string.isRequired,
 }
