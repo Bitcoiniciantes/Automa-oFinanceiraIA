@@ -14,8 +14,9 @@ import {
   todayLocalISO,
   toISO,
 } from '../lib/finance'
+import { USER_COLLECTION } from '../lib/constants'
 
-const userCollection = 'usuarios'
+const userCollection = USER_COLLECTION
 const EXPECTED_HEADERS = {
   merchant: ['estabelecimento', 'merchant name', 'merchant', 'nome do estabelecimento', 'loja', 'origem', 'descricao', 'description', 'nome', 'name', 'payee', 'beneficiary'],
   value: ['valor', 'value', 'amount', 'preco', 'price', 'total'],
@@ -124,7 +125,7 @@ export function BulkImport({ userId, onSaved }) {
 
   useEffect(() => {
     if (!userId) return
-    const colRef = collection(db, 'usuarios', userId, 'transacoes')
+    const colRef = collection(db, userCollection, userId, 'transacoes')
     getDocs(colRef).then((snapshot) => {
       setExistingTransactions(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
     }).catch((error) => {

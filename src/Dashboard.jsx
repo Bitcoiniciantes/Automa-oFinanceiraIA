@@ -14,8 +14,9 @@ import { SubscriptionRadar } from './components/Subscriptions'
 import { AssistantPanel } from './components/Assistant'
 import { MonthlyReport } from './components/Report'
 import { accountUser, buildInsight, buildStats, parseTransactionDate } from './lib/finance'
+import { USER_COLLECTION } from './lib/constants'
 
-const userCollection = 'usuarios'
+const userCollection = USER_COLLECTION
 const PAGE_ROUTES = {
   '/': 'Visão geral',
   '/lancamentos': 'Lançamentos',

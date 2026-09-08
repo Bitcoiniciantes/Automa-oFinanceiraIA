@@ -6,9 +6,10 @@ import { auth, db } from '../firebase'
 import styles from '../Dashboard.module.css'
 import { buildMonthlySummary, buildTopExpensesByMonth, buildTrends, buildCategoryAverages, buildRecurring, buildTopExpensesAnual } from '../lib/finance'
 import { renderMarkdown } from '../lib/markdown'
+import { FINAI_ASSISTANT_ENDPOINT, USER_COLLECTION } from '../lib/constants'
 
-const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
-const userCollection = 'usuarios'
+const FINAI_AI_ENDPOINT = FINAI_ASSISTANT_ENDPOINT
+const userCollection = USER_COLLECTION
 
 export function AssistantPanel({ data, stats, userId }) {
   const [messages, setMessages] = useState([{ role: 'model', text: 'Olá! Posso analisar seus gastos, receitas e assinaturas.' }])

@@ -17,9 +17,9 @@ import {
   toISO,
 } from '../lib/finance'
 
-const FINAI_AI_ENDPOINT = 'https://bitcoiniciantes-ia.bitcoiniciantes.workers.dev/v1/finai-assistant'
-const FINAI_INVOICE_ENDPOINT = FINAI_AI_ENDPOINT.replace('/v1/finai-assistant', '/v1/finai-invoice')
-const userCollection = 'usuarios'
+import { FINAI_INVOICE_ENDPOINT, USER_COLLECTION } from '../lib/constants'
+
+const userCollection = USER_COLLECTION
 const MAX_INVOICE_SIZE = 5 * 1024 * 1024
 
 export function TransactionItem({ transaction, onEdit, onDelete }) {

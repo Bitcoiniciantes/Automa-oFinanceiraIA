@@ -4,8 +4,9 @@ import { collection, deleteDoc, doc, setDoc, updateDoc } from 'firebase/firestor
 import { db } from '../firebase'
 import styles from '../Dashboard.module.css'
 import { formatChargeDate, parseAmount, parseMoneyInput, subscriptionType, todayLocalISO } from '../lib/finance'
+import { USER_COLLECTION } from '../lib/constants'
 
-const userCollection = 'usuarios'
+const userCollection = USER_COLLECTION
 
 export function SubscriptionRadar({ userId, subscriptions, onChanged }) {
   const [editingId, setEditingId] = useState(null)
